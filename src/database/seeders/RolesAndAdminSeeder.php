@@ -17,6 +17,7 @@ class RolesAndAdminSeeder extends Seeder
         $permissions = [
             'marks.enter', 'marks.view', 'results.generate', 'results.view', 'users.manage',
             'departments.view', 'departments.create', 'departments.edit', 'departments.delete',
+            'coursetypes.view', 'coursetypes.create', 'coursetypes.edit', 'coursetypes.delete',
         ];
 
         foreach ($permissions as $p) {
@@ -26,7 +27,8 @@ class RolesAndAdminSeeder extends Seeder
         Role::findOrCreate('admin', 'api')->syncPermissions($permissions);
 
         Role::findOrCreate('teacher', 'api')->syncPermissions([
-            'marks.enter', 'marks.view', 'results.view', 'departments.view',
+            'marks.enter', 'marks.view', 'results.view',
+            'departments.view', 'coursetypes.view',
         ]);
 
         Role::findOrCreate('student', 'api')->syncPermissions(['results.view']);

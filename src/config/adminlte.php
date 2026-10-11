@@ -244,11 +244,10 @@ return [
         [
             'text' => 'Dashboard',
             'icon' => 'bi bi-speedometer',
-            'submenu' => [
-                ['text' => 'Dashboard v1', 'url' => '/', 'icon' => 'bi bi-circle'],
-                ['text' => 'Dashboard v2', 'url' => 'demo/dashboard-v2', 'icon' => 'bi bi-circle'],
-                ['text' => 'Dashboard v3', 'url' => 'demo/dashboard-v3', 'icon' => 'bi bi-circle'],
-            ],
+            'text' => 'Dashboard',
+            'route' => 'dashboard.index',
+            'active' => ['dashboard*'],
+            'can' => 'dashboard.view',
         ],
          ['header' => 'ACADEMIC'],
         [
@@ -259,15 +258,10 @@ return [
         'can' => 'departments.view',
         ],
         [
-            'text' => 'Theme Generate',
-            'url' => 'demo/theme-generator',
-            'icon' => 'bi bi-palette',
-        ],
-        [
-            'text' => 'Widgets',
-            'icon' => 'bi bi-box-seam-fill',
+            'text' => 'Configuration',
+            'icon' => 'bi bi-gear-fill  ',
             'submenu' => [
-                ['text' => 'Small Box', 'url' => 'demo/widgets/small-box', 'icon' => 'bi bi-circle'],
+                ['text' => 'Course Types','route' => 'course-types.index','icon' => 'bi bi-tags','active' => ['course-types*'],'can' => 'coursetypes.view',],
                 ['text' => 'Info Box', 'url' => 'demo/widgets/info-box', 'icon' => 'bi bi-circle'],
                 ['text' => 'Cards', 'url' => 'demo/widgets/cards', 'icon' => 'bi bi-circle'],
             ],
