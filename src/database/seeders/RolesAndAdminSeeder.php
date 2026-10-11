@@ -14,13 +14,21 @@ class RolesAndAdminSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $permissions = ['marks.enter', 'marks.view', 'results.generate', 'results.view', 'users.manage'];
+        $permissions = [
+            'marks.enter', 'marks.view', 'results.generate', 'results.view', 'users.manage',
+            'departments.view', 'departments.create', 'departments.edit', 'departments.delete',
+        ];
+
         foreach ($permissions as $p) {
             Permission::findOrCreate($p, 'api');
         }
 
         Role::findOrCreate('admin', 'api')->syncPermissions($permissions);
-        Role::findOrCreate('teacher', 'api')->syncPermissions(['marks.enter', 'marks.view', 'results.view']);
+
+        Role::findOrCreate('teacher', 'api')->syncPermissions([
+            'marks.enter', 'marks.view', 'results.view', 'departments.view',
+        ]);
+
         Role::findOrCreate('student', 'api')->syncPermissions(['results.view']);
 
         $admin = User::firstOrCreate(

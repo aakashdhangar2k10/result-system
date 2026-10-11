@@ -250,6 +250,14 @@ return [
                 ['text' => 'Dashboard v3', 'url' => 'demo/dashboard-v3', 'icon' => 'bi bi-circle'],
             ],
         ],
+         ['header' => 'ACADEMIC'],
+        [
+        'text' => 'Departments',
+        'route' => 'departments.index',
+        'icon' => 'bi bi-building',
+        'active' => ['departments*'],
+        'can' => 'departments.view',
+        ],
         [
             'text' => 'Theme Generate',
             'url' => 'demo/theme-generator',
