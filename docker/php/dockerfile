@@ -1,0 +1,19 @@
+FROM php:8.4-fpm
+
+RUN apt-get update && apt-get install -y \
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev libicu-dev \
+    libfreetype6-dev libjpeg62-turbo-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install pdo_mysql mbstring zip gd intl bcmath pcntl opcache \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Match host user so files in ./src aren't owned by root
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g ${GID} app && useradd -u ${UID} -g app -m app
+
+WORKDIR /var/www/html
+USER app
+
