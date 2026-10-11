@@ -261,8 +261,9 @@ return [
             'text' => 'Configuration',
             'icon' => 'bi bi-gear-fill  ',
             'submenu' => [
-                ['text' => 'Course Types','route' => 'course-types.index','icon' => 'bi bi-tags','active' => ['course-types*'],'can' => 'coursetypes.view',],
-                ['text' => 'Info Box', 'url' => 'demo/widgets/info-box', 'icon' => 'bi bi-circle'],
+                ['text' => 'Course Types','route' => 'course-types.index','icon' => 'bi bi-tags','active' => ['configuration/course-types*'],'can' => 'coursetypes.view',],
+                [
+            'text' => 'Semester List','route' => 'semesters.index','icon' => 'bi bi-calendar3','active' => ['configuration/semesters*'],'can' => 'semesters.view',],
                 ['text' => 'Cards', 'url' => 'demo/widgets/cards', 'icon' => 'bi bi-circle'],
             ],
         ],
