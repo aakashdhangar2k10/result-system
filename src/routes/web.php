@@ -3,6 +3,7 @@
 use App\Http\Controllers\Configuration\CourseTypeController;
 use App\Http\Controllers\Configuration\SemesterListController;
 use App\Http\Controllers\Configuration\GradeTypeController;
+use App\Http\Controllers\Configuration\DivisionTypeController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -25,5 +26,6 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
         Route::resource('course-types', CourseTypeController::class)->except('show');
         Route::resource('semesters', SemesterListController::class)->except('show');
         Route::resource('grade-types', GradeTypeController::class)->except('show');
+        Route::resource('division-types', DivisionTypeController::class)->except('show');
     });
 });

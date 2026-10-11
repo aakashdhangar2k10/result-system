@@ -264,6 +264,7 @@ return [
                 ['text' => 'Course Types','route' => 'course-types.index','icon' => 'bi bi-tags','active' => ['configuration/course-types*'],'can' => 'coursetypes.view',],
                 ['text' => 'Semester List','route' => 'semesters.index','icon' => 'bi bi-calendar3','active' => ['configuration/semesters*'],'can' => 'semesters.view',],
                 ['text' => 'Grade Type','route' => 'grade-types.index','icon' => 'bi bi-award','active' => ['configuration/grade-types*'],'can' => 'gradetypes.view',],
+                ['text' => 'Division Type','route' => 'division-types.index','icon' => 'bi bi-diagram-3','active' => ['configuration/division-types*'],'can' => 'divisiontypes.view',],
             ],
         ],
         [
