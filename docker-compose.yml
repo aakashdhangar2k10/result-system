@@ -22,6 +22,20 @@ services:
     depends_on:
       - app
 
+  node:
+    image: node:22-alpine
+    working_dir: /var/www/html
+    user: "${UID:-1000}:${GID:-1000}"
+    profiles: ["frontend"]
+    environment:
+      HOME: /tmp
+      npm_config_cache: /tmp/.npm
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host  
+
   db:
     image: mysql:8.4
     container_name: result_db

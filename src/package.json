@@ -15,5 +15,17 @@
     },
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
+    },
+    "dependencies": {
+        "@popperjs/core": "^2.11.8",
+        "admin-lte": "^4.10.0",
+        "bootstrap": "^5.3.8",
+        "bootstrap-icons": "^1.13.2",
+        "chart.js": "^4.5.1",
+        "fullcalendar": "^7.1.1",
+        "jsvectormap": "^1.7.0",
+        "overlayscrollbars": "^2.16.0",
+        "sass": "^1.105.1",
+        "sortablejs": "^1.15.7"
     }
 }
