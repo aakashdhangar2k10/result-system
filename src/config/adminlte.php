@@ -262,9 +262,8 @@ return [
             'icon' => 'bi bi-gear-fill  ',
             'submenu' => [
                 ['text' => 'Course Types','route' => 'course-types.index','icon' => 'bi bi-tags','active' => ['configuration/course-types*'],'can' => 'coursetypes.view',],
-                [
-            'text' => 'Semester List','route' => 'semesters.index','icon' => 'bi bi-calendar3','active' => ['configuration/semesters*'],'can' => 'semesters.view',],
-                ['text' => 'Cards', 'url' => 'demo/widgets/cards', 'icon' => 'bi bi-circle'],
+                ['text' => 'Semester List','route' => 'semesters.index','icon' => 'bi bi-calendar3','active' => ['configuration/semesters*'],'can' => 'semesters.view',],
+                ['text' => 'Grade Type','route' => 'grade-types.index','icon' => 'bi bi-award','active' => ['configuration/grade-types*'],'can' => 'gradetypes.view',],
             ],
         ],
         [
