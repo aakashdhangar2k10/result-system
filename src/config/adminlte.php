@@ -267,10 +267,12 @@ return [
                 ['text' => 'Division Type','route' => 'division-types.index','icon' => 'bi bi-diagram-3','active' => ['configuration/division-types*'],'can' => 'divisiontypes.view',],
             ],
         ],
-        [
-            'text' => 'Layout Options',
-            'url' => 'demo/layout-options',
-            'icon' => 'bi bi-clipboard-fill',
+       [
+        'text' => 'Grade',
+        'route' => 'grades.index',
+        'icon' => 'bi bi-journal-check',
+        'active' => ['grades*'],
+        'can' => 'grades.view',
         ],
         [
             'text' => 'UI Elements',

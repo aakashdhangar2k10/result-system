@@ -5,6 +5,7 @@ use App\Http\Controllers\Configuration\SemesterListController;
 use App\Http\Controllers\Configuration\GradeTypeController;
 use App\Http\Controllers\Configuration\DivisionTypeController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\Grade\GradeController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
     
     Route::resource('departments', DepartmentController::class)->except('show');
+    Route::resource('grades', GradeController::class)->except('show');
     
     // configuration
     Route::prefix('configuration')->group(function () {
