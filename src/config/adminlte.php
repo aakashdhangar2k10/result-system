@@ -275,6 +275,13 @@ return [
         'can' => 'grades.view',
         ],
         [
+        'text' => 'Division',
+        'route' => 'divisions.index',
+        'icon' => 'bi bi-diagram-2',
+        'active' => ['divisions*'],
+        'can' => 'divisions.view',
+        ],
+        [
             'text' => 'UI Elements',
             'icon' => 'bi bi-tree-fill',
             'submenu' => [
