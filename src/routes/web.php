@@ -7,6 +7,7 @@ use App\Http\Controllers\Configuration\DivisionTypeController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\Grade\GradeController;
 use App\Http\Controllers\Division\DivisionController;
+use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +25,8 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::resource('departments', DepartmentController::class)->except('show');
     Route::resource('grades', GradeController::class)->except('show');
     Route::resource('divisions', DivisionController::class)->except('show');
-    
+    Route::resource('courses', CourseController::class)->except('show');
+
     // configuration
     Route::prefix('configuration')->group(function () {
         Route::resource('course-types', CourseTypeController::class)->except('show');

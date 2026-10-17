@@ -282,6 +282,13 @@ return [
         'can' => 'divisions.view',
         ],
         [
+        'text' => 'Courses',
+        'route' => 'courses.index',
+        'icon' => 'bi bi-mortarboard',
+        'active' => ['courses*'],
+        'can' => 'courses.view',
+        ],
+        [
             'text' => 'UI Elements',
             'icon' => 'bi bi-tree-fill',
             'submenu' => [
