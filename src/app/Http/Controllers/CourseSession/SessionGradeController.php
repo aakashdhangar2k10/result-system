@@ -12,13 +12,15 @@ use App\Models\CourseSession\SessionGrade;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Models\Division\Division;
+use App\Models\Grade\Grade;
 
 class SessionGradeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:sessiongrades.view', only: ['index']),
+            new Middleware('permission:sessiongrades.view', only: ['index', 'show']),
             new Middleware('permission:sessiongrades.create', only: ['create', 'store']),
             new Middleware('permission:sessiongrades.edit', only: ['edit', 'update']),
             new Middleware('permission:sessiongrades.delete', only: ['destroy']),
@@ -42,6 +44,28 @@ class SessionGradeController extends Controller implements HasMiddleware
             'sessionGrades' => $query->paginate($perPage)->withQueryString(),
             'perPage' => $perPage,
         ] + $this->formData());
+    }
+    public function show(Request $request, SessionGrade $sessionGrade)
+    {
+    // this URL only returns an HTML fragment for the popup
+    if (! $request->ajax()) {
+        return redirect()->route('session-grades.index');
+    }
+
+    $sessionGrade->load(['course', 'batch.branch', 'gradeType', 'divisionType']);
+
+    return view('coursesession.session_grades._detail', [
+        'sessionGrade' => $sessionGrade,
+        'grades' => Grade::where('gradetypeid', $sessionGrade->gradetypeid)
+            ->where('active', true)
+            ->orderByDesc('startscore')
+            ->orderByDesc('endscore')
+            ->get(),
+        'divisions' => Division::where('divtypeid', $sessionGrade->divtypeid)
+            ->where('active', true)
+            ->orderByDesc('startpoint')
+            ->get(),
+    ]);
     }
 
     public function create()

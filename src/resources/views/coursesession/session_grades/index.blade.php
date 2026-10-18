@@ -97,7 +97,7 @@
                         <x-sortable-th column="divisiontype" label="Division Type" />
                         <th>Description</th>
                         <x-sortable-th column="active" label="Status" />
-                        <th style="width:110px">Action</th>
+                       <th style="width:150px">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,6 +120,13 @@
                             </span>
                         </td>
                         <td>
+                            @can('sessiongrades.view')
+                            <button type="button" class="btn btn-sm btn-primary" title="View"
+                            data-bs-toggle="modal" data-bs-target="#sessionGradeModal"
+                            data-url="{{ route('session-grades.show', $sessionGrade) }}">
+                            <i class="bi bi-eye"></i>
+                            </button>
+                            @endcan
                             @can('sessiongrades.edit')
                                 <a href="{{ route('session-grades.edit', $sessionGrade) }}" class="btn btn-sm btn-info text-white" title="Edit">
                                     <i class="bi bi-pencil-square"></i>
@@ -147,4 +154,47 @@
             {{ $sessionGrades->links() }}
         </div>
     </div>
+    <div class="modal fade" id="sessionGradeModal" tabindex="-1" aria-labelledby="sessionGradeModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sessionGradeModalTitle">Detail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="sessionGradeModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        var modal = document.getElementById('sessionGradeModal');
+        var body = document.getElementById('sessionGradeModalBody');
+
+        // keep the modal directly under <body> so the layout's containers can't clip it
+        document.body.appendChild(modal);
+
+        modal.addEventListener('show.bs.modal', function (event) {
+            var url = event.relatedTarget && event.relatedTarget.dataset.url;
+            if (!url) return;
+
+            body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-info"></div></div>';
+
+            fetch(url, {
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error(response.status);
+                    return response.text();
+                })
+                .then(function (html) { body.innerHTML = html; })
+                .catch(function () {
+                    body.innerHTML = '<div class="alert alert-danger mb-0">Could not load the details. Please try again.</div>';
+                });
+        });
+    })();
+</script>
 @stop

@@ -43,6 +43,6 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
 
     // coursesession
     Route::prefix('coursesession')->group(function () {
-        Route::resource('session-grades', SessionGradeController::class)->except('show');
+        Route::resource('session-grades', SessionGradeController::class);
     });
 });
