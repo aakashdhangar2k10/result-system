@@ -52,11 +52,12 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Subject Type</label>
-                        <select name="subjecttype" class="form-select">
+                        <select name="subjecttypeid" class="form-select">
                             <option value="">Select Subject Type</option>
-                            @foreach ($types as $value => $label)
-                                <option value="{{ $value }}" @selected(request('subjecttype') == $value)>
-                                    {{ $label }}
+                            @foreach ($subjectTypes as $subjectType)
+                                <option value="{{ $subjectType->subjecttypeid }}"
+                                    @selected(request('subjecttypeid') == $subjectType->subjecttypeid)>
+                                    {{ $subjectType->subjecttypename }}
                                 </option>
                             @endforeach
                         </select>
@@ -91,14 +92,16 @@
                 <thead>
                     <tr>
                         <th style="width:70px">Sr. No</th>
-                        <x-sortable-th column="course" label="Course Name" />
+                        <x-sortable-th column="course" label="Course" />
                         <x-sortable-th column="term" label="Semester / Year" />
-                        <x-sortable-th column="subjecttype" label="Subject Type" />
+                        <x-sortable-th column="subjecttype" label="Type" />
                         <x-sortable-th column="subjectname" label="Subject Name" />
-                        <x-sortable-th column="subjectcode" label="Subject Code" />
+                        <x-sortable-th column="subjectcode" label="Code" />
                         <x-sortable-th column="subjectcredit" label="Credit" />
                         <x-sortable-th column="maxinternalmarks" label="Max Internal" />
                         <x-sortable-th column="maxexternalmarks" label="Max External" />
+                        <th>Total</th>
+                        <x-sortable-th column="add_grade" label="Grade" />
                         <x-sortable-th column="active" label="Status" />
                         <th style="width:110px">Action</th>
                     </tr>
@@ -107,14 +110,22 @@
                 @forelse ($subjects as $subject)
                     <tr>
                         <td>{{ $subjects->firstItem() + $loop->index }}</td>
-                        <td>{{ $subject->course?->fullname ?? '—' }}</td>
+                        <td>{{ $subject->course?->shortname ?? '—' }}</td>
                         <td>{{ $subject->term_label }}</td>
                         <td>{{ $subject->type_label }}</td>
                         <td>{{ $subject->subjectname }}</td>
                         <td>{{ $subject->subjectcode }}</td>
-                        <td>{{ $subject->subjectcredit }}</td>
-                        <td>{{ $subject->maxinternalmarks }}</td>
-                        <td>{{ $subject->maxexternalmarks }}</td>
+                        <td>{{ (float) $subject->subjectcredit }}</td>
+                        <td>{{ $subject->subjectType?->has_internal ? $subject->maxinternalmarks : '—' }}</td>
+                        <td>{{ $subject->subjectType?->has_external ? $subject->maxexternalmarks : '—' }}</td>
+                        <td>{{ $subject->total_marks ?: '—' }}</td>
+                        <td>
+                            @if ($subject->add_grade)
+                                <span class="badge text-bg-primary">Yes</span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td>
                             <span class="badge text-bg-{{ $subject->active ? 'success' : 'secondary' }}">
                                 {{ $subject->active ? 'Active' : 'Inactive' }}
@@ -137,7 +148,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="11" class="text-center text-muted py-4">No subjects found.</td></tr>
+                    <tr><td colspan="13" class="text-center text-muted py-4">No subjects found.</td></tr>
                 @endforelse
                 </tbody>
             </table>

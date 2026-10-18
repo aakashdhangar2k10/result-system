@@ -37,15 +37,19 @@
 <div class="row mb-3">
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Subject Type</label>
     <div class="col-sm-9">
-        <select name="subjecttype" class="form-select @error('subjecttype') is-invalid @enderror" required>
+        <select name="subjecttypeid" id="subjecttypeid" class="form-select @error('subjecttypeid') is-invalid @enderror" required>
             <option value="">Select Subject Type</option>
-            @foreach ($types as $value => $label)
-                <option value="{{ $value }}" @selected(old('subjecttype', $subject->subjecttype) == $value)>
-                    {{ $label }}
+            @foreach ($subjectTypes as $subjectType)
+                <option value="{{ $subjectType->subjecttypeid }}"
+                        data-internal="{{ $subjectType->has_internal ? 1 : 0 }}"
+                        data-external="{{ $subjectType->has_external ? 1 : 0 }}"
+                        data-grade="{{ $subjectType->has_grade ? 1 : 0 }}"
+                        @selected(old('subjecttypeid', $subject->subjecttypeid) == $subjectType->subjecttypeid)>
+                    {{ $subjectType->subjecttypename }}
                 </option>
             @endforeach
         </select>
-        @error('subjecttype') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        @error('subjecttypeid') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 </div>
 
@@ -61,8 +65,8 @@
 <div class="row mb-3">
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Subject Credit</label>
     <div class="col-sm-9">
-        <input type="number" step="0.5" min="0" max="30" name="subjectcredit"
-               value="{{ old('subjectcredit', $subject->subjectcredit) }}"
+        <input type="number" name="subjectcredit" step="0.5" min="0" max="30"
+               value="{{ old('subjectcredit', isset($subject->subjectcredit) ? (float) $subject->subjectcredit : '') }}"
                class="form-control @error('subjectcredit') is-invalid @enderror" placeholder="Subject credit like 4" required>
         @error('subjectcredit') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
@@ -77,23 +81,35 @@
     </div>
 </div>
 
-<div class="row mb-3">
+{{-- shown or hidden by the selected subject type --}}
+<div class="row mb-3" id="row_internal">
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Max Internal Marks</label>
     <div class="col-sm-9">
-        <input type="number" min="0" max="500" name="maxinternalmarks"
+        <input type="number" name="maxinternalmarks" min="0" max="1000"
                value="{{ old('maxinternalmarks', $subject->maxinternalmarks) }}"
-               class="form-control @error('maxinternalmarks') is-invalid @enderror" placeholder="Max internal marks like 30" required>
+               class="form-control @error('maxinternalmarks') is-invalid @enderror" placeholder="30" required>
         @error('maxinternalmarks') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-3" id="row_external">
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Max External Marks</label>
     <div class="col-sm-9">
-        <input type="number" min="0" max="500" name="maxexternalmarks"
+        <input type="number" name="maxexternalmarks" min="0" max="1000"
                value="{{ old('maxexternalmarks', $subject->maxexternalmarks) }}"
-               class="form-control @error('maxexternalmarks') is-invalid @enderror" placeholder="Max external marks like 70" required>
+               class="form-control @error('maxexternalmarks') is-invalid @enderror" placeholder="70" required>
         @error('maxexternalmarks') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+</div>
+
+<div class="row mb-3" id="row_grade">
+    <div class="col-sm-9 offset-sm-3">
+        <div class="form-check">
+            <input type="hidden" name="add_grade" value="0">
+            <input class="form-check-input" type="checkbox" name="add_grade" id="add_grade" value="1"
+                   @checked(old('add_grade', $subject->add_grade))>
+            <label class="form-check-label" for="add_grade">Add Grade for this subject</label>
+        </div>
     </div>
 </div>
 
@@ -113,15 +129,19 @@
         var course = document.getElementById('courseid');
         var term = document.getElementById('semid');
         var label = document.getElementById('term_label');
+        var type = document.getElementById('subjecttypeid');
+        var rowInternal = document.getElementById('row_internal');
+        var rowExternal = document.getElementById('row_external');
+        var rowGrade = document.getElementById('row_grade');
 
-        function sync() {
+        // semester / year follows the course
+        function syncTerm() {
             var opt = course.options[course.selectedIndex];
             var terms = opt && opt.dataset.terms ? parseInt(opt.dataset.terms, 10) : 0;
             var word = opt && opt.dataset.structure === 'year' ? 'Year' : 'Semester';
 
             label.textContent = word;
 
-            // terms up to the course length, named "First Semester" or "First Year"
             Array.prototype.forEach.call(term.options, function (o) {
                 if (!o.value) return;
                 var within = terms > 0 && parseInt(o.dataset.number, 10) <= terms;
@@ -134,7 +154,27 @@
             if (chosen && chosen.disabled) term.value = '';
         }
 
-        course.addEventListener('change', sync);
-        sync();
+        // a hidden row is also disabled, so its inputs are not submitted
+        function toggle(row, on) {
+            row.style.display = on ? '' : 'none';
+            Array.prototype.forEach.call(row.querySelectorAll('input'), function (input) {
+                input.disabled = !on;
+            });
+        }
+
+        // marks and grade fields follow the subject type
+        function syncType() {
+            var opt = type.options[type.selectedIndex];
+            var chosen = !!opt && opt.value !== '';
+
+            toggle(rowInternal, chosen && opt.dataset.internal === '1');
+            toggle(rowExternal, chosen && opt.dataset.external === '1');
+            toggle(rowGrade, chosen && opt.dataset.grade === '1');
+        }
+
+        course.addEventListener('change', syncTerm);
+        type.addEventListener('change', syncType);
+        syncTerm();
+        syncType();
     })();
 </script>

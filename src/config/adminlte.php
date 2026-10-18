@@ -265,6 +265,7 @@ return [
                 ['text' => 'Semester List','route' => 'semesters.index','icon' => 'bi bi-calendar3','active' => ['configuration/semesters*'],'can' => 'semesters.view',],
                 ['text' => 'Grade Type','route' => 'grade-types.index','icon' => 'bi bi-award','active' => ['configuration/grade-types*'],'can' => 'gradetypes.view',],
                 ['text' => 'Division Type','route' => 'division-types.index','icon' => 'bi bi-diagram-3','active' => ['configuration/division-types*'],'can' => 'divisiontypes.view',],
+                ['text' => 'Subject Type','route' => 'subject-types.index','icon' => 'bi bi-bookmarks','active' => ['configuration/subject-types*'],'can' => 'subjecttypes.view',],
             ],
         ],
        [
@@ -345,6 +346,13 @@ return [
             'icon' => 'bi bi-circle',
             'active' => ['subjects*'],
             'can' => 'subjects.view',
+        ],
+        [
+            'text' => 'Subject Order',
+            'route' => 'subject-orders.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['subject-orders*'],
+            'can' => 'subjectorders.view',
         ],
         ],
         ],

@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Subject;
 
 use App\Models\Configuration\SemesterList;
+use App\Models\Configuration\SubjectType;
 use App\Models\Course\Course;
-use App\Models\Subject\Subject;
 use App\Support\Term;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,10 +16,24 @@ class SubjectRequest extends FormRequest
         return true; // access is controlled by route permissions
     }
 
+    // Whatever the chosen subject type does not ask for is cleared here,
+    // so hidden fields can never be forced through the form.
+    protected function prepareForValidation(): void
+    {
+        $type = SubjectType::find($this->subjecttypeid);
+
+        $this->merge([
+            'maxinternalmarks' => $type?->has_internal ? $this->maxinternalmarks : 0,
+            'maxexternalmarks' => $type?->has_external ? $this->maxexternalmarks : 0,
+            'add_grade' => $type?->has_grade ? $this->boolean('add_grade') : false,
+        ]);
+    }
+
     public function rules(): array
     {
         $id = $this->route('subject')?->subjectid;
         $course = Course::find($this->courseid);
+        $type = SubjectType::find($this->subjecttypeid);
 
         return [
             'courseid' => [
@@ -39,7 +53,10 @@ class SubjectRequest extends FormRequest
                     }
                 },
             ],
-            'subjecttype' => ['required', Rule::in(array_keys(Subject::TYPES))],
+            'subjecttypeid' => [
+                'required',
+                Rule::exists('mark_subject_type', 'subjecttypeid')->where('is_delete', false),
+            ],
             'subjectname' => [
                 'required', 'string', 'max:255',
                 // the same name can't repeat in one course + semester
@@ -53,13 +70,15 @@ class SubjectRequest extends FormRequest
             'subjectcredit' => ['required', 'numeric', 'min:0', 'max:30'],
             'subjectcode' => [
                 'required', 'string', 'max:50',
-                // the code is unique inside a course
+                // the same code can't repeat inside one course
                 Rule::unique('mark_subject', 'subjectcode')
                     ->where(fn ($q) => $q->where('courseid', $this->courseid)->where('is_delete', false))
                     ->ignore($id, 'subjectid'),
             ],
-            'maxinternalmarks' => ['required', 'integer', 'min:0', 'max:500'],
-            'maxexternalmarks' => ['required', 'integer', 'min:0', 'max:500'],
+            // only required when the subject type asks for them
+            'maxinternalmarks' => [$type?->has_internal ? 'required' : 'nullable', 'integer', 'min:0', 'max:1000'],
+            'maxexternalmarks' => [$type?->has_external ? 'required' : 'nullable', 'integer', 'min:0', 'max:1000'],
+            'add_grade' => ['nullable', 'boolean'],
             'active' => ['nullable', 'boolean'],
         ];
     }
@@ -67,7 +86,7 @@ class SubjectRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'subjectname.unique' => 'This subject already exists for the selected course and semester.',
+            'subjectname.unique' => 'This subject already exists in the selected course and semester/year.',
             'subjectcode.unique' => 'This subject code is already used in the selected course.',
         ];
     }
