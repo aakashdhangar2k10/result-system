@@ -316,41 +316,25 @@ return [
         ],
         ],
         [
-            'text' => 'UI Elements',
-            'icon' => 'bi bi-tree-fill',
-            'submenu' => [
-                ['text' => 'General', 'url' => 'demo/ui/general', 'icon' => 'bi bi-circle'],
-                ['text' => 'Icons', 'url' => 'demo/ui/icons', 'icon' => 'bi bi-circle'],
-                ['text' => 'Timeline', 'url' => 'demo/ui/timeline', 'icon' => 'bi bi-circle'],
-            ],
+        'text' => 'Semester',
+        'icon' => 'bi bi-pie-chart',
+        'submenu' => [
+        [
+            'text' => 'Semester',
+            'route' => 'course-semesters.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['course-semesters*'],
+            'can' => 'coursesemesters.view',
         ],
         [
-            'text' => 'Mailbox',
-            'icon' => 'bi bi-envelope',
-            'submenu' => [
-                ['text' => 'Inbox', 'url' => 'admin/mailbox', 'icon' => 'bi bi-circle'],
-                ['text' => 'Compose', 'url' => 'admin/mailbox/compose', 'icon' => 'bi bi-circle'],
-            ],
+            'text' => 'Semester Exam',
+            'route' => 'semester-exams.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['semester-exams*'],
+            'can' => 'semesterexams.view',
         ],
-        [
-            'text' => 'Forms',
-            'icon' => 'bi bi-pencil-square',
-            'submenu' => [
-                ['text' => 'Elements', 'url' => 'demo/forms/elements', 'icon' => 'bi bi-circle'],
-                ['text' => 'Layout', 'url' => 'demo/forms/layout', 'icon' => 'bi bi-circle'],
-                ['text' => 'Validation', 'url' => 'demo/forms/validation', 'icon' => 'bi bi-circle'],
-                ['text' => 'Wizard', 'url' => 'demo/forms/wizard', 'icon' => 'bi bi-circle'],
-            ],
         ],
-        [
-            'text' => 'Tables',
-            'icon' => 'bi bi-table',
-            'submenu' => [
-                ['text' => 'Simple Tables', 'url' => 'demo/tables/simple', 'icon' => 'bi bi-circle'],
-                ['text' => 'Data Tables', 'url' => 'demo/tables/data', 'icon' => 'bi bi-circle'],
-            ],
         ],
-
         ['header' => 'PAGES'],
         [
             'text' => 'Pages',
