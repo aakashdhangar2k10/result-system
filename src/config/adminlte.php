@@ -335,33 +335,19 @@ return [
         ],
         ],
         ],
-        ['header' => 'PAGES'],
         [
-            'text' => 'Pages',
-            'icon' => 'bi bi-file-earmark-text',
-            'submenu' => [
-                ['text' => 'Profile', 'url' => 'admin/profile', 'icon' => 'bi bi-circle'],
-                ['text' => 'Settings', 'url' => 'admin/settings', 'icon' => 'bi bi-circle'],
-                ['text' => 'Invoice', 'url' => 'admin/invoice', 'icon' => 'bi bi-circle'],
-                ['text' => 'Calendar', 'url' => 'admin/calendar', 'icon' => 'bi bi-circle'],
-                ['text' => 'Kanban', 'url' => 'admin/kanban', 'icon' => 'bi bi-circle'],
-                ['text' => 'Chat', 'url' => 'admin/chat', 'icon' => 'bi bi-circle'],
-                ['text' => 'File Manager', 'url' => 'admin/file-manager', 'icon' => 'bi bi-circle'],
-                ['text' => 'Projects', 'url' => 'admin/projects', 'icon' => 'bi bi-circle'],
-                ['text' => 'Pricing', 'url' => 'admin/pricing', 'icon' => 'bi bi-circle'],
-                ['text' => 'FAQ', 'url' => 'admin/faq', 'icon' => 'bi bi-circle'],
-                [
-                    'text' => 'Error',
-                    'icon' => 'bi bi-circle',
-                    'submenu' => [
-                        ['text' => '404', 'url' => 'demo/errors/404', 'icon' => 'bi bi-circle'],
-                        ['text' => '500', 'url' => 'demo/errors/500', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Maintenance', 'url' => 'demo/errors/maintenance', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-            ],
+        'text' => 'Subject',
+        'icon' => 'bi bi-book',
+        'submenu' => [
+        [
+            'text' => 'Subject',
+            'route' => 'subjects.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['subjects*'],
+            'can' => 'subjects.view',
         ],
-
+        ],
+        ],
         ['header' => 'ADMINISTRATION'],
         [
             'text' => 'Users',
@@ -375,7 +361,6 @@ return [
             'icon' => 'bi bi-shield-lock',
             'can' => 'manage-roles',
         ],
-
         ['header' => 'EXAMPLES'],
         [
             'text' => 'Auth',
