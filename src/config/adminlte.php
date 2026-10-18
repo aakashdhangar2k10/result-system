@@ -295,12 +295,25 @@ return [
         'active' => ['branches*'],
         'can' => 'branches.view',
         ],
+       [
+        'text' => 'Course Session',
+        'icon' => 'bi bi-calendar-check',
+        'submenu' => [
         [
-        'text' => 'Batch / Session',
-        'route' => 'batches.index',
-        'icon' => 'bi bi-calendar-range',
-        'active' => ['batches*'],
-        'can' => 'batches.view',
+            'text' => 'Batch / Session',
+            'route' => 'batches.index',
+            'icon' => 'bi bi-calendar-range',
+            'active' => ['batches*'],
+            'can' => 'batches.view',
+        ],
+        [
+            'text' => 'Session Grade',
+            'route' => 'session-grades.index',
+            'icon' => 'bi bi-award',
+            'active' => ['coursesession/session-grades*'],
+            'can' => 'sessiongrades.view',
+        ],
+        ],
         ],
         [
             'text' => 'UI Elements',

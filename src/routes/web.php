@@ -9,6 +9,8 @@ use App\Http\Controllers\Division\DivisionController;
 use App\Http\Controllers\Course\CourseController;
 use App\Http\Controllers\Branch\BranchController;
 use App\Http\Controllers\Batch\BatchController;
+use App\Http\Controllers\CourseSession\SessionGradeController;
+
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +39,10 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
         Route::resource('semesters', SemesterListController::class)->except('show');
         Route::resource('grade-types', GradeTypeController::class)->except('show');
         Route::resource('division-types', DivisionTypeController::class)->except('show');
+    });
+
+    // coursesession
+    Route::prefix('coursesession')->group(function () {
+        Route::resource('session-grades', SessionGradeController::class)->except('show');
     });
 });
