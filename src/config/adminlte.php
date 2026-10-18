@@ -289,6 +289,13 @@ return [
         'can' => 'courses.view',
         ],
         [
+        'text' => 'Branches',
+        'route' => 'branches.index',
+        'icon' => 'bi bi-diagram-3-fill',
+        'active' => ['branches*'],
+        'can' => 'branches.view',
+        ],
+        [
             'text' => 'UI Elements',
             'icon' => 'bi bi-tree-fill',
             'submenu' => [
