@@ -37,9 +37,10 @@
             <table class="table table-striped align-middle mb-0">
                 <thead>
                     <tr>
-                        <th style="width:60px">#</th>
+                        <th style="width:60px">Sr. No.</th>
                         <th>Full Name</th>
                         <th>Short Name</th>
+                        <th>Description</th>
                         <th>Status</th>
                         <th style="width:160px">Actions</th>
                     </tr>
@@ -50,6 +51,7 @@
                         <td>{{ $courseTypes->firstItem() + $loop->index }}</td>
                         <td>{{ $courseType->fullname }}</td>
                         <td>{{ $courseType->shortname }}</td>
+                        <td>{{ $courseType->description }}</td>
                         <td>
                             <span class="badge text-bg-{{ $courseType->active ? 'success' : 'secondary' }}">
                                 {{ $courseType->active ? 'Active' : 'Inactive' }}
