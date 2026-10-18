@@ -15,6 +15,8 @@ use App\Http\Controllers\Semester\CourseSemesterController;
 use App\Http\Controllers\Semester\SemesterExamController;
 use App\Http\Controllers\Subject\SubjectController;
 use App\Http\Controllers\Subject\SubjectOrderController;
+use App\Http\Controllers\Subject\SessionSubjectController;
+
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -44,13 +46,17 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
         Route::resource('grade-types', GradeTypeController::class)->except('show');
         Route::resource('division-types', DivisionTypeController::class)->except('show');
         Route::resource('subject-types', SubjectTypeController::class)->except('show');
-        Route::get('subject-orders', [SubjectOrderController::class, 'index'])->name('subject-orders.index');
-        Route::put('subject-orders', [SubjectOrderController::class, 'update'])->name('subject-orders.update');
+       
     });
 
     Route::resource('course-semesters', CourseSemesterController::class)->except('show');
     Route::resource('semester-exams', SemesterExamController::class)->except('show');
     Route::resource('subjects', SubjectController::class)->except('show');
+    Route::get('subject-orders', [SubjectOrderController::class, 'index'])->name('subject-orders.index');
+    Route::put('subject-orders', [SubjectOrderController::class, 'update'])->name('subject-orders.update');
+    Route::get('session-subjects/options', [SessionSubjectController::class, 'options'])->name('session-subjects.options');
+    Route::resource('session-subjects', SessionSubjectController::class)->except('show');
+    
 
     // coursesession
     Route::prefix('coursesession')->group(function () {

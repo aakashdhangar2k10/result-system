@@ -354,6 +354,13 @@ return [
             'active' => ['subject-orders*'],
             'can' => 'subjectorders.view',
         ],
+        [
+            'text' => 'Session Subject',
+            'route' => 'session-subjects.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['session-subjects*'],
+            'can' => 'sessionsubjects.view',
+        ],
         ],
         ],
         ['header' => 'ADMINISTRATION'],

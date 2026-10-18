@@ -32,6 +32,7 @@ class RolesAndAdminSeeder extends Seeder
             'subjects.view', 'subjects.create', 'subjects.edit', 'subjects.delete',
             'subjecttypes.view', 'subjecttypes.create', 'subjecttypes.edit', 'subjecttypes.delete',
             'subjectorders.view', 'subjectorders.edit',
+            'sessionsubjects.view', 'sessionsubjects.create', 'sessionsubjects.edit', 'sessionsubjects.delete',
         ];
 
         foreach ($permissions as $p) {
@@ -44,7 +45,7 @@ class RolesAndAdminSeeder extends Seeder
             'marks.enter', 'marks.view', 'results.view',
             'departments.view', 'coursetypes.view','semesters.view','gradetypes.view','divisiontypes.view','grades.view','divisions.view',
             'courses.view','branches.view','batches.view','sessiongrades.view','coursesemesters.view', 'semesterexams.view','subjects.view',
-            'subjecttypes.view','subjectorders.view',
+            'subjecttypes.view','subjectorders.view','sessionsubjects.view',
         ]);
 
         Role::findOrCreate('student', 'api')->syncPermissions(['results.view']);
