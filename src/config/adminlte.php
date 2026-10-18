@@ -296,6 +296,13 @@ return [
         'can' => 'branches.view',
         ],
         [
+        'text' => 'Batch / Session',
+        'route' => 'batches.index',
+        'icon' => 'bi bi-calendar-range',
+        'active' => ['batches*'],
+        'can' => 'batches.view',
+        ],
+        [
             'text' => 'UI Elements',
             'icon' => 'bi bi-tree-fill',
             'submenu' => [
