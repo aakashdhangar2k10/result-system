@@ -17,6 +17,7 @@ use App\Http\Controllers\Subject\SubjectController;
 use App\Http\Controllers\Subject\SubjectOrderController;
 use App\Http\Controllers\Subject\SessionSubjectController;
 use App\Http\Controllers\Student\StudentController;
+use App\Http\Controllers\Student\StudentImportController;
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -63,4 +64,17 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::prefix('coursesession')->group(function () {
         Route::resource('session-grades', SessionGradeController::class);
     });
+
+    // studentImport
+    Route::prefix('student-imports')->name('student-imports.')->controller(StudentImportController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('create', 'create')->name('create');
+    Route::get('template', 'template')->name('template');
+    Route::post('/', 'store')->name('store');
+    Route::get('{studentImport}', 'show')->name('show');
+    Route::post('{studentImport}/confirm', 'confirm')->name('confirm');
+    Route::post('{studentImport}/clear', 'clear')->name('clear');
+    Route::delete('{studentImport}', 'destroy')->name('destroy');
+    });
+    
 });

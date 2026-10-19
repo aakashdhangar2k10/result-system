@@ -20,7 +20,7 @@ class Student extends Model
     protected $primaryKey = 'studentid';
 
     protected $fillable = [
-    'courseid', 'batchid', 'rollno', 'enrollmentno', 'apaarid',
+    'courseid', 'batchid', 'importid', 'rollno', 'enrollmentno', 'apaarid',
     'firstname', 'lastname',
     'father_label', 'father_title', 'fathername',
     'mother_title', 'mothername',

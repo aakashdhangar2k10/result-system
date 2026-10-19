@@ -375,6 +375,13 @@ return [
             'active' => ['students*'],
             'can' => 'students.view',
         ],
+        [
+            'text' => 'Student Import Log',
+            'route' => 'student-imports.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['student-imports*'],
+            'can' => 'studentimports.view',
+        ],
         ],
         ],
         ['header' => 'ADMINISTRATION'],

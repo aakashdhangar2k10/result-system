@@ -8,9 +8,19 @@
         <h3 class="mb-0">Student</h3>
     </div>
     <div class="col-sm-6 text-end">
+        @can('studentimports.view')
+        <a href="{{ route('student-imports.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history"></i> Import Log
+        </a>
+        @endcan
+        @can('studentimports.create')
+        <a href="{{ route('student-imports.create') }}" class="btn btn-primary">
+            <i class="bi bi-file-earmark-excel"></i> Add Students With Excel
+        </a>
+        @endcan
         @can('students.create')
         <a href="{{ route('students.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Add
+            <i class="bi bi-plus-lg"></i> Add Student
         </a>
         @endcan
     </div>
