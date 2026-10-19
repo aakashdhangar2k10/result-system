@@ -80,5 +80,7 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
 
     Route::get('student-lists/options', [StudentListController::class, 'options'])->name('student-lists.options');
     Route::resource('student-lists', StudentListController::class);
+    Route::post('student-lists/{student_list}/lock', [StudentListController::class, 'lock'])->name('student-lists.lock');
+    Route::post('student-lists/{student_list}/unlock', [StudentListController::class, 'unlock'])->name('student-lists.unlock');
     
 });

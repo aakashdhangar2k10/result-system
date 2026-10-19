@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use App\Models\Student\StudentListLock;
 
 class StudentListController extends Controller implements HasMiddleware
 {
@@ -25,6 +26,8 @@ class StudentListController extends Controller implements HasMiddleware
             new Middleware('permission:studentlists.edit', only: ['edit', 'update']),
             new Middleware('permission:studentlists.create|studentlists.edit', only: ['options']),
             new Middleware('permission:studentlists.delete', only: ['destroy']),
+            new Middleware('permission:studentlists.lock', only: ['lock']),
+            new Middleware('permission:studentlists.unlock', only: ['unlock']),
         ];
     }
 
@@ -60,6 +63,8 @@ class StudentListController extends Controller implements HasMiddleware
             ->with(['semester.course', 'semester.batch.branch', 'semester.term'])
             ->when($request->courseid, fn ($q, $id) => $q->where('mark_semester.courseid', $id))
             ->when($request->batchid, fn ($q, $id) => $q->where('mark_semester.batchid', $id))
+            ->when($request->lock === 'locked', fn ($q) => $q->where('mark_student_list.is_locked', true))
+            ->when($request->lock === 'unlocked', fn ($q) => $q->where('mark_student_list.is_locked', false))
             ->when($request->q, function ($q, $search) {
                 $q->where(function ($w) use ($search) {
                     $w->where('mark_course.fullname', 'like', "%{$search}%")
@@ -84,7 +89,7 @@ class StudentListController extends Controller implements HasMiddleware
             return redirect()->route('student-lists.index');
         }
 
-        $studentList->load(['semester.course', 'semester.batch.branch', 'semester.term', 'students.batch']);
+       $studentList->load(['semester.course', 'semester.batch.branch', 'semester.term','students.batch', 'locker', 'lockLog.user',]);
 
         return view('student_list._detail', ['list' => $studentList]);
     }
@@ -195,6 +200,30 @@ class StudentListController extends Controller implements HasMiddleware
         return redirect()->route('student-lists.index')->with('success', 'Student list deleted.');
     }
 
+    public function lock(Request $request, StudentList $studentList)
+    {
+    $data = $request->validate(['note' => ['nullable', 'string', 'max:255']]);
+
+    return $this->changeLock($studentList, true, $data['note'] ?? null, $request->user()->id)
+        ? back()->with('success', 'Student list locked. It cannot be edited or deleted until it is unlocked.')
+        : back()->with('error', 'This student list is already locked.');
+    }
+
+    public function unlock(Request $request, StudentList $studentList)
+    {
+    // opening a list that may already have a result needs a reason
+    $data = $request->validate(
+        ['note' => ['required', 'string', 'min:5', 'max:255']],
+        [
+            'note.required' => 'Write the reason for unlocking this list.',
+            'note.min' => 'The reason must be at least 5 characters.',
+        ]
+    );
+
+    return $this->changeLock($studentList, false, $data['note'], $request->user()->id)
+        ? back()->with('success', 'Student list unlocked. Lock it again after your changes.')
+        : back()->with('error', 'This student list is not locked.');
+    }
     // ------------------------------------------------------------------ helpers
 
     private function lockedMessage(): string
@@ -313,5 +342,32 @@ class StudentListController extends Controller implements HasMiddleware
 
         // tie-breaker so pagination stays stable
         $query->orderBy('mark_student_list.studentlistid');
+    }
+
+    private function changeLock(StudentList $list, bool $lock, ?string $note, int $userId): bool
+    {
+    return DB::transaction(function () use ($list, $lock, $note, $userId) {
+        // lock the row, so two people clicking at the same moment cannot both change it
+        $current = StudentList::lockForUpdate()->find($list->studentlistid);
+
+        if (! $current || $current->is_locked === $lock) {
+            return false;
+        }
+
+        $current->update([
+            'is_locked' => $lock,
+            'locked_at' => $lock ? now() : null,
+            'locked_by' => $lock ? $userId : null,
+        ]);
+
+        StudentListLock::create([
+            'studentlistid' => $current->studentlistid,
+            'action' => $lock ? 'lock' : 'unlock',
+            'note' => $note,
+            'user_id' => $userId,
+        ]);
+
+        return true;
+    });
     }
 }

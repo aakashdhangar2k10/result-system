@@ -36,6 +36,7 @@ class RolesAndAdminSeeder extends Seeder
             'students.view', 'students.create', 'students.edit','students.delete',
             'studentimports.view', 'studentimports.create', 'studentimports.clear',
             'studentlists.view', 'studentlists.create', 'studentlists.edit', 'studentlists.delete',
+            'studentlists.lock', 'studentlists.unlock',
         ];
 
         foreach ($permissions as $p) {
