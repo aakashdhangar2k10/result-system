@@ -41,9 +41,9 @@ class StudentRequest extends FormRequest
                     ->where('courseid', $this->courseid)
                     ->where('is_delete', false),
             ],
-            'rollno' => ['required', 'string', 'max:50', Rule::unique('mark_student', 'rollno')->ignore($id, 'studentid')],
-            'enrollmentno' => ['required', 'string', 'max:50', Rule::unique('mark_student', 'enrollmentno')->ignore($id, 'studentid')],
-            'apaarid' => ['nullable', 'string', 'max:30', Rule::unique('mark_student', 'apaarid')->ignore($id, 'studentid')],
+            'rollno' => ['required', 'string', 'max:50',Rule::unique('mark_student', 'rollno')->where('is_delete', false)->ignore($id, 'studentid'),],
+            'enrollmentno' => ['required', 'string', 'max:50',Rule::unique('mark_student', 'enrollmentno')->where('is_delete', false)->ignore($id, 'studentid'),],
+            'apaarid' => ['nullable', 'string', 'max:30',Rule::unique('mark_student', 'apaarid')->where('is_delete', false)->ignore($id, 'studentid'),],
             'firstname' => ['required', 'string', 'max:100'],
             'lastname' => ['nullable', 'string', 'max:100'],
             'father_label' => ['nullable', Rule::in(Student::FATHER_LABELS)],

@@ -20,6 +20,7 @@ class StudentController extends Controller implements HasMiddleware
             new Middleware('permission:students.view', only: ['index', 'show']),
             new Middleware('permission:students.create', only: ['create', 'store']),
             new Middleware('permission:students.edit', only: ['edit', 'update', 'status']),
+            new Middleware('permission:students.delete', only: ['destroy']),
         ];
     }
 
@@ -160,5 +161,12 @@ class StudentController extends Controller implements HasMiddleware
             'batches' => $active(Batch::query()->with(['course', 'branch']), 'batchid', $current?->batchid)
                 ->orderByDesc('startyear')->get(),
         ];
+    }
+
+    public function destroy(Student $student)
+    {
+    // soft delete: the row and the photo are kept, so the student can be restored later
+    $student->update(['is_delete' => true]);
+    return redirect()->route('students.index')->with('success', 'Student deleted.');
     }
 }

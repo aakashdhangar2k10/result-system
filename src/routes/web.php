@@ -57,7 +57,7 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::get('session-subjects/options', [SessionSubjectController::class, 'options'])->name('session-subjects.options');
     Route::resource('session-subjects', SessionSubjectController::class)->except('show');
     Route::patch('students/{student}/status', [StudentController::class, 'status'])->name('students.status');
-    Route::resource('students', StudentController::class)->except('destroy');
+    Route::resource('students', StudentController::class);
 
     // coursesession
     Route::prefix('coursesession')->group(function () {

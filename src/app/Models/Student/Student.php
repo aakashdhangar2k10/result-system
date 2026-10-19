@@ -7,6 +7,7 @@ use App\Models\Course\Course;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class Student extends Model
 {
@@ -19,17 +20,22 @@ class Student extends Model
     protected $primaryKey = 'studentid';
 
     protected $fillable = [
-        'courseid', 'batchid', 'rollno', 'enrollmentno', 'apaarid',
-        'firstname', 'lastname',
-        'father_label', 'father_title', 'fathername',
-        'mother_title', 'mothername',
-        'address', 'mobile', 'image', 'active',
+    'courseid', 'batchid', 'rollno', 'enrollmentno', 'apaarid',
+    'firstname', 'lastname',
+    'father_label', 'father_title', 'fathername',
+    'mother_title', 'mothername',
+    'address', 'mobile', 'image', 'active', 'is_delete',
     ];
 
     protected function casts(): array
     {
-        return ['active' => 'boolean'];
+       return [
+        'active' => 'boolean',
+        'is_delete' => 'boolean',
+        ];
+        
     }
+    
 
     public function getRouteKeyName(): string
     {
@@ -65,5 +71,12 @@ class Student extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::get(fn () => $this->image ? asset('storage/' . $this->image) : null);
+    }
+
+    protected static function booted(): void
+    {
+    static::addGlobalScope('notDeleted', function (Builder $query) {
+        $query->where('mark_student.is_delete', false);
+    });
     }
 }
