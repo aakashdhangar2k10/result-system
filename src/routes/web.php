@@ -18,6 +18,7 @@ use App\Http\Controllers\Subject\SubjectOrderController;
 use App\Http\Controllers\Subject\SessionSubjectController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\StudentImportController;
+use App\Http\Controllers\Student\StudentListController;
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -76,5 +77,8 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::post('{studentImport}/clear', 'clear')->name('clear');
     Route::delete('{studentImport}', 'destroy')->name('destroy');
     });
+
+    Route::get('student-lists/options', [StudentListController::class, 'options'])->name('student-lists.options');
+    Route::resource('student-lists', StudentListController::class);
     
 });

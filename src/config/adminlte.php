@@ -382,6 +382,13 @@ return [
             'active' => ['student-imports*'],
             'can' => 'studentimports.view',
         ],
+        [
+            'text' => 'Student List',
+            'route' => 'student-lists.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['student-lists*'],
+            'can' => 'studentlists.view',
+        ],
         ],
         ],
         ['header' => 'ADMINISTRATION'],
