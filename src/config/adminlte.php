@@ -363,6 +363,20 @@ return [
         ],
         ],
         ],
+        ['header' => 'STUDENT'],    
+        [
+        'text' => 'Student',
+        'icon' => 'bi bi-people-fill',
+        'submenu' => [
+        [
+            'text' => 'Student',
+            'route' => 'students.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['students*'],
+            'can' => 'students.view',
+        ],
+        ],
+        ],
         ['header' => 'ADMINISTRATION'],
         [
             'text' => 'Users',

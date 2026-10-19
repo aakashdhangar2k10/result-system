@@ -16,7 +16,7 @@ use App\Http\Controllers\Semester\SemesterExamController;
 use App\Http\Controllers\Subject\SubjectController;
 use App\Http\Controllers\Subject\SubjectOrderController;
 use App\Http\Controllers\Subject\SessionSubjectController;
-
+use App\Http\Controllers\Student\StudentController;
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -56,7 +56,8 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::put('subject-orders', [SubjectOrderController::class, 'update'])->name('subject-orders.update');
     Route::get('session-subjects/options', [SessionSubjectController::class, 'options'])->name('session-subjects.options');
     Route::resource('session-subjects', SessionSubjectController::class)->except('show');
-    
+    Route::patch('students/{student}/status', [StudentController::class, 'status'])->name('students.status');
+    Route::resource('students', StudentController::class)->except('destroy');
 
     // coursesession
     Route::prefix('coursesession')->group(function () {
