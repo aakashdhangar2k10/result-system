@@ -26,7 +26,7 @@ $s->rollno,
     @if ($list->locker) by {{ $list->locker->name }} @endif.
     The list cannot be edited or deleted until it is unlocked.
 </div>
-@endifdif
+@endif
 
 <div class="table-responsive">
     <table class="table table-sm table-striped align-middle mb-0">
