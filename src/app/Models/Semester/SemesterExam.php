@@ -13,10 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SemesterExam extends Model
 {
-    public const ATTEMPTS = [
-        1 => 'First Attempt (1)',
-        2 => 'Second Attempt (2)',
-    ];
+   public const ORDINALS = [1 => 'First', 2 => 'Second', 3 => 'Third'];
 
     protected $table = 'mark_semester_exam';
     protected $primaryKey = 'semesterexamid';
@@ -36,7 +33,16 @@ class SemesterExam extends Model
             'is_delete' => 'boolean',
         ];
     }
+    // "First (June-2026)"
+    protected function examLabel(): Attribute
+    {
+    return Attribute::get(function () {
+        $ordinal = self::ORDINALS[$this->attempt] ?? ('Attempt ' . $this->attempt);
+        $month = $this->exammonth?->format('F-Y');
 
+        return $month ? "{$ordinal} ({$month})" : $ordinal;
+    });
+    }
     // Hide soft-deleted rows from every query automatically
     protected static function booted(): void
     {
