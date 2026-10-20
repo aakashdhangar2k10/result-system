@@ -43,14 +43,16 @@ class RolesAndAdminSeeder extends Seeder
             'adminusers.view', 'adminusers.create', 'adminusers.edit', 'adminusers.delete',
             'adminroles.view', 'adminroles.create', 'adminroles.edit', 'adminroles.delete',
             'admingroups.view', 'admingroups.create', 'admingroups.edit', 'admingroups.delete',
+            'dashboard.view',
         ];
 
         foreach ($permissions as $p) {
             Permission::findOrCreate($p, 'api');
         }
-
+        
         // the administrator always has every permission
         Role::findOrCreate('admin', 'api')->syncPermissions($permissions);
+        
 
        // first-time defaults only: after that these roles are managed under Administration → Roles
         $teacher = Role::findOrCreate('teacher', 'api');
@@ -64,13 +66,18 @@ class RolesAndAdminSeeder extends Seeder
         'subjectorders.view', 'sessionsubjects.view', 'students.view', 'studentlists.view',
         'optionalsubjectstudents.view',
         'subjectresults.view', 'subjectresults.create', 'subjectresults.edit',
-        'semesterresults.download',
+        'semesterresults.download','dashboard.view',
         ]);
         }
 
        $student = Role::findOrCreate('student', 'api');
         if ($student->wasRecentlyCreated) {
             $student->syncPermissions(['results.view']);
+        }
+
+        // everybody who can log in lands on the dashboard; change it later under Administration → Roles
+        foreach (['teacher', 'student'] as $name) {
+        Role::findByName($name, 'api')->givePermissionTo('dashboard.view');
         }
 
         $admin = User::firstOrCreate(

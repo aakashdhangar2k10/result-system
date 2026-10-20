@@ -9,6 +9,7 @@ use App\Http\Controllers\Configuration\SemesterListController;
 use App\Http\Controllers\Configuration\GradeTypeController;
 use App\Http\Controllers\Configuration\DivisionTypeController;
 use App\Http\Controllers\Configuration\SubjectTypeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\Grade\GradeController;
 use App\Http\Controllers\Division\DivisionController;
@@ -30,7 +31,6 @@ use App\Http\Controllers\Result\ResultController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
 
 Route::prefix('administration')->group(function () {
     Route::resource('users', UserController::class)->names('admin-users');
@@ -45,8 +45,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
-
+    Route::get('/dashboard', DashboardController::class)->name('dashboard.index');
     Route::resource('departments', DepartmentController::class)->except('show');
     Route::resource('grades', GradeController::class)->except('show');
     Route::resource('divisions', DivisionController::class)->except('show');

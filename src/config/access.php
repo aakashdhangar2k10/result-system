@@ -35,6 +35,7 @@ return [
         'adminusers' => 'Administration: Users',
         'adminroles' => 'Administration: Roles',
         'admingroups' => 'Administration: Groups',
+        'dashboard' => 'Dashboard',
     ],
 
     // permission suffix => column name
