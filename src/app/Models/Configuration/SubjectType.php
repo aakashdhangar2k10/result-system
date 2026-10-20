@@ -13,7 +13,7 @@ class SubjectType extends Model
     protected $primaryKey = 'subjecttypeid';
 
     protected $fillable = [
-        'subjecttypename', 'has_internal', 'has_external', 'has_grade', 'active', 'is_delete',
+        'subjecttypename', 'has_internal', 'has_external', 'has_grade','is_optional', 'active', 'is_delete',
     ];
 
     protected function casts(): array
@@ -22,6 +22,7 @@ class SubjectType extends Model
             'has_internal' => 'boolean',
             'has_external' => 'boolean',
             'has_grade' => 'boolean',
+            'is_optional' => 'boolean',
             'active' => 'boolean',
             'is_delete' => 'boolean',
         ];

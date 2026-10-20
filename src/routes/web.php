@@ -19,6 +19,7 @@ use App\Http\Controllers\Subject\SessionSubjectController;
 use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\StudentImportController;
 use App\Http\Controllers\Student\StudentListController;
+use App\Http\Controllers\Subject\OptionalSubjectStudentController;
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -82,5 +83,9 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::resource('student-lists', StudentListController::class);
     Route::post('student-lists/{student_list}/lock', [StudentListController::class, 'lock'])->name('student-lists.lock');
     Route::post('student-lists/{student_list}/unlock', [StudentListController::class, 'unlock'])->name('student-lists.unlock');
+
+
+    Route::get('optional-subject-students/options', [OptionalSubjectStudentController::class, 'students'])->name('optional-subject-students.options');
+    Route::resource('optional-subject-students', OptionalSubjectStudentController::class)->except('show');
     
 });

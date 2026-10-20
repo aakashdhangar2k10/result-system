@@ -27,6 +27,7 @@ class SubjectTypeRequest extends FormRequest
             'has_internal' => ['nullable', 'boolean'],
             'has_external' => ['nullable', 'boolean'],
             'has_grade' => ['nullable', 'boolean'],
+            'is_optional' => ['nullable', 'boolean'],
             'active' => ['nullable', 'boolean'],
         ];
     }

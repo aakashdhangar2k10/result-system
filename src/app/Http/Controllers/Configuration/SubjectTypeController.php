@@ -30,7 +30,7 @@ class SubjectTypeController extends Controller implements HasMiddleware
             ->when($request->q, fn ($q, $search) => $q->where('subjecttypename', 'like', "%{$search}%"));
 
         $direction = $request->dir === 'desc' ? 'desc' : 'asc';
-        $columns = ['subjecttypename', 'has_internal', 'has_external', 'has_grade', 'active'];
+        $columns = ['subjecttypename', 'has_internal', 'has_external', 'has_grade', 'is_optional', 'active'];
 
         in_array($request->sort, $columns, true)
             ? $query->orderBy($request->sort, $direction)
@@ -47,7 +47,7 @@ class SubjectTypeController extends Controller implements HasMiddleware
     public function create()
     {
         return view('configuration.subject_types.create', [
-            'subjectType' => new SubjectType(['has_internal' => true, 'has_external' => true, 'has_grade' => false, 'active' => true]),
+            'subjectType' => new SubjectType(['has_internal' => true, 'has_external' => true, 'has_grade' => false,'is_optional' => false, 'active' => true]),
         ]);
     }
 
@@ -87,7 +87,7 @@ class SubjectTypeController extends Controller implements HasMiddleware
     {
         $data = $request->validated();
 
-        foreach (['has_internal', 'has_external', 'has_grade', 'active'] as $flag) {
+        foreach (['has_internal', 'has_external', 'has_grade', 'is_optional', 'active'] as $flag) {
             $data[$flag] = $request->boolean($flag);
         }
 

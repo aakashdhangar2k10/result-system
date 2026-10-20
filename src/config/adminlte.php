@@ -389,6 +389,13 @@ return [
             'active' => ['student-lists*'],
             'can' => 'studentlists.view',
         ],
+        [
+            'text' => 'Optional Subject Student',
+            'route' => 'optional-subject-students.index',
+            'icon' => 'bi bi-circle',
+            'active' => ['optional-subject-students*'],
+            'can' => 'optionalsubjectstudents.view',
+        ],
         ],
         ],
         ['header' => 'ADMINISTRATION'],

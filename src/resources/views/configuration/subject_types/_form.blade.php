@@ -36,6 +36,20 @@
 <div class="row mb-3">
     <div class="col-sm-9 offset-sm-3">
         <div class="form-check">
+            <input type="hidden" name="is_optional" value="0">
+            <input class="form-check-input" type="checkbox" name="is_optional" id="is_optional" value="1"
+                   @checked(old('is_optional', $subjectType->is_optional))>
+            <label class="form-check-label" for="is_optional">
+                Optional subject: only the students who choose it take it
+                (chosen under Student → Optional Subject Student)
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-sm-9 offset-sm-3">
+        <div class="form-check">
             <input type="hidden" name="active" value="0">
             <input class="form-check-input" type="checkbox" name="active" id="active" value="1"
                    @checked(old('active', $subjectType->active ?? true))>

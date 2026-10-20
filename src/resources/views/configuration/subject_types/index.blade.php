@@ -57,6 +57,7 @@
                         <x-sortable-th column="has_internal" label="Max Internal" />
                         <x-sortable-th column="has_external" label="Max External" />
                         <x-sortable-th column="has_grade" label="Add Grade" />
+                        <x-sortable-th column="is_optional" label="Optional" />
                         <x-sortable-th column="active" label="Status" />
                         <th style="width:110px">Action</th>
                     </tr>
@@ -69,6 +70,7 @@
                         <td>{!! $subjectType->has_internal ? '<span class="badge text-bg-primary">Asked</span>' : '<span class="text-muted">—</span>' !!}</td>
                         <td>{!! $subjectType->has_external ? '<span class="badge text-bg-primary">Asked</span>' : '<span class="text-muted">—</span>' !!}</td>
                         <td>{!! $subjectType->has_grade ? '<span class="badge text-bg-primary">Asked</span>' : '<span class="text-muted">—</span>' !!}</td>
+                        <td>{!! $subjectType->is_optional ? '<span class="badge text-bg-info">Optional</span>' : '<span class="text-muted">—</span>' !!}</td>
                         <td>
                             <span class="badge text-bg-{{ $subjectType->active ? 'success' : 'secondary' }}">
                                 {{ $subjectType->active ? 'Active' : 'Inactive' }}
