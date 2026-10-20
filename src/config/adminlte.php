@@ -398,6 +398,14 @@ return [
         ],
         ],
         ],
+        ['header' => 'RESULT'],
+        [
+            'text' => 'Result',
+            'route' => 'results.index',
+            'icon' => 'bi bi-card-list',
+            'active' => ['results*'],
+            'can' => 'subjectresults.view',
+        ],
         ['header' => 'ADMINISTRATION'],
         [
             'text' => 'Users',

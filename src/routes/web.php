@@ -20,6 +20,7 @@ use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Student\StudentImportController;
 use App\Http\Controllers\Student\StudentListController;
 use App\Http\Controllers\Subject\OptionalSubjectStudentController;
+use App\Http\Controllers\Result\ResultController;
 
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -88,4 +89,16 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::get('optional-subject-students/options', [OptionalSubjectStudentController::class, 'students'])->name('optional-subject-students.options');
     Route::resource('optional-subject-students', OptionalSubjectStudentController::class)->except('show');
     
+    // Result
+    Route::prefix('results')->name('results.')->controller(ResultController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('create', 'create')->name('create');
+    Route::get('entry', 'entry')->name('entry');
+    Route::post('calculate', 'calculate')->name('calculate');
+    Route::post('/', 'store')->name('store');
+    Route::get('{subjectResult}', 'show')->name('show');
+    Route::get('{subjectResult}/edit', 'edit')->name('edit');
+    Route::put('{subjectResult}', 'update')->name('update');
+    Route::delete('{subjectResult}', 'destroy')->name('destroy');
+});
 });
