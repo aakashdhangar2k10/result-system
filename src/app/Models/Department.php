@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use App\Support\DepartmentAccess;
+use App\Support\ScopedByDepartment;
 class Department extends Model
 {
+    use ScopedByDepartment;
     protected $table = 'mark_department';
     protected $primaryKey = 'deptid';
 
@@ -20,6 +23,7 @@ class Department extends Model
         'joindate', 'active', 'is_delete',
     ];
 
+    
     
     protected function casts(): array
     {

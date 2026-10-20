@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use App\Support\DepartmentAccess;
+use App\Support\ScopedByDepartment;
 class Course extends Model
 {
+    use ScopedByDepartment;
     public const STRUCTURES = [
         'semester' => 'Semester-wise',
         'year' => 'Year-wise',
@@ -56,6 +58,11 @@ class Course extends Model
     public function courseType(): BelongsTo
     {
         return $this->belongsTo(GradeType::class, 'coursetypeid', 'coursetypeid');
+    }
+
+     public function limitToDepartments(Builder $query): void
+    {
+        $query->whereIn($this->qualifyColumn('deptid'), DepartmentAccess::departmentIds());
     }
 
     // "8 Semesters (4 years)" or "3 Years"
