@@ -143,7 +143,7 @@ return [
 
     // In-app documentation viewer: renders this package's docs/*.md files at
     // /docs and /docs/{page}. Set 'docs' => false to disable the route.
-    'docs' => true,
+    'docs' => false,
     'docs_middleware' => ['web'],
 
     // Activity log (`adminlte:scaffold activity-log`). ActivityLogger never stores
@@ -241,10 +241,10 @@ return [
 
     'menu' => [
         // ---- Sidebar: mirrors the AdminLTE 4 demo sidebar ----
+        ['header' => 'DASHBOARD'],
         [
             'text' => 'Dashboard',
             'icon' => 'bi bi-speedometer',
-            'text' => 'Dashboard',
             'route' => 'dashboard.index',
             'active' => ['dashboard*'],
             'can' => 'dashboard.view',
@@ -434,62 +434,6 @@ return [
                 ],
             ],
         ],
-        [
-            'text' => 'Roles',
-            'url' => 'admin/roles',
-            'icon' => 'bi bi-shield-lock',
-            'can' => 'manage-roles',
-        ],
-        ['header' => 'EXAMPLES'],
-        [
-            'text' => 'Auth',
-            'icon' => 'bi bi-box-arrow-in-right',
-            'submenu' => [
-                [
-                    'text' => 'Version 1',
-                    'icon' => 'bi bi-box-arrow-in-right',
-                    'submenu' => [
-                        ['text' => 'Login', 'url' => 'login', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Register', 'url' => 'register', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-                [
-                    'text' => 'Version 2',
-                    'icon' => 'bi bi-box-arrow-in-right',
-                    'submenu' => [
-                        ['text' => 'Login', 'url' => 'demo/auth/login-v2', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Register', 'url' => 'demo/auth/register-v2', 'icon' => 'bi bi-circle'],
-                        ['text' => 'Lockscreen', 'url' => 'demo/auth/lockscreen', 'icon' => 'bi bi-circle'],
-                    ],
-                ],
-            ],
-        ],
-
-        ['header' => 'MULTI LEVEL EXAMPLE'],
-        ['text' => 'Level 1', 'url' => '#', 'icon' => 'bi bi-circle-fill'],
-        [
-            'text' => 'Level 1',
-            'icon' => 'bi bi-circle-fill',
-            'submenu' => [
-                ['text' => 'Level 2', 'url' => '#', 'icon' => 'bi bi-circle'],
-                [
-                    'text' => 'Level 2',
-                    'icon' => 'bi bi-circle',
-                    'submenu' => [
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                        ['text' => 'Level 3', 'url' => '#', 'icon' => 'bi bi-record-circle-fill'],
-                    ],
-                ],
-                ['text' => 'Level 2', 'url' => '#', 'icon' => 'bi bi-circle'],
-            ],
-        ],
-        ['text' => 'Level 1', 'url' => '#', 'icon' => 'bi bi-circle-fill'],
-
-        ['header' => 'LABELS'],
-        ['text' => 'Important', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'danger'],
-        ['text' => 'Warning', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'warning'],
-        ['text' => 'Informational', 'url' => '#', 'icon' => 'bi bi-circle', 'icon_color' => 'info'],
     ],
 
     /*
