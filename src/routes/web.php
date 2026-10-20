@@ -90,18 +90,6 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::resource('optional-subject-students', OptionalSubjectStudentController::class)->except('show');
 
     // Result
-    // Route::prefix('results')->name('results.')->controller(ResultController::class)->group(function () {
-    //     Route::get('/', 'index')->name('index');
-    //     Route::get('create', 'create')->name('create');
-    //     Route::get('entry', 'entry')->name('entry');
-    //     Route::post('calculate', 'calculate')->name('calculate');
-    //     Route::post('/', 'store')->name('store');
-    //     Route::get('{subjectResult}', 'show')->name('show');
-    //     Route::get('{subjectResult}/edit', 'edit')->name('edit');
-    //     Route::put('{subjectResult}', 'update')->name('update');
-    //     Route::delete('{subjectResult}', 'destroy')->name('destroy');
-    // });
-
     Route::prefix('results')->name('results.')->controller(ResultController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('create', 'create')->name('create');
@@ -114,5 +102,6 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
         Route::get('{subjectResult}/edit', 'edit')->name('edit');
         Route::put('{subjectResult}', 'update')->name('update');
         Route::delete('{subjectResult}', 'destroy')->name('destroy');
+        Route::get('semester/{semesterExam}/download', 'download')->name('download');
     });
 });

@@ -18,10 +18,15 @@ use RuntimeException;
 use App\Models\Result\SemesterResult;
 use App\Models\Student\Student;
 use App\Services\SemesterResultService;
+use App\Services\ResultExportService;
 
 class ResultController extends Controller implements HasMiddleware
 {
-    public function __construct(private ResultService $service, private SemesterResultService $sgpa) {}
+    public function __construct(
+        private ResultService $service,
+        private SemesterResultService $sgpa,
+        private ResultExportService $export
+    ) {}
 
     public static function middleware(): array
     {
@@ -33,6 +38,7 @@ class ResultController extends Controller implements HasMiddleware
             new Middleware('permission:subjectresults.delete', only: ['destroy']),
             new Middleware('permission:subjectresults.view', only: ['index', 'show', 'studentDetail']),
             new Middleware('permission:semesterresults.calculate', only: ['calculateSgpa']),
+            new Middleware('permission:semesterresults.download', only: ['download']),
         ];
     }
 
@@ -307,6 +313,36 @@ class ResultController extends Controller implements HasMiddleware
             'lines' => $this->sgpa->breakdown($semesterExam, $student->studentid),
             'explainer' => $this->sgpa,
         ]);
+    }
+
+    // "Download": the result sheet as a PDF or an Excel file
+    public function download(Request $request, SemesterExam $semesterExam)
+    {
+        $options = $request->validate([
+            'format' => ['required', 'in:pdf,xlsx'],
+            'view' => ['required', 'in:grades,marks'],
+            'sort' => ['required', 'in:' . implode(',', array_keys(ResultExportService::SORTS))],
+            'dir' => ['required', 'in:asc,desc'],
+        ]);
+
+        $header = SemesterResult::where('semesterexamid', $semesterExam->semesterexamid)->first();
+
+        if (! $header) {
+            return back()->with('error', 'Calculate the SGPA before you download the result.');
+        }
+
+        // an official sheet must not carry old numbers
+        $rule = $this->sgpa->rule($semesterExam);
+
+        if ($header->is_stale || ($rule && $header->ruleDiffers($rule))) {
+            return back()->with('error', 'Marks or the result rule changed after the SGPA was calculated. Recalculate the SGPA first.');
+        }
+
+        $sheet = $this->export->build($semesterExam, $options);
+
+        return $options['format'] === 'pdf'
+            ? $this->export->pdf($sheet)
+            : $this->export->xlsx($sheet);
     }
 
     public function edit(SubjectResult $subjectResult)
