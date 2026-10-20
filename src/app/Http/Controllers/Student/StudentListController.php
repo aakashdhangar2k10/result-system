@@ -15,7 +15,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use App\Models\Student\StudentListLock;
-
+use App\Support\DeleteGuard;
 class StudentListController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -190,6 +190,9 @@ class StudentListController extends Controller implements HasMiddleware
 
     public function destroy(StudentList $studentList)
     {
+        if ($blocked = DeleteGuard::blocker($studentList)) {
+        return back()->with('error', $blocked);
+        }
         if ($studentList->is_locked) {
             return redirect()->route('student-lists.index')->with('error', $this->lockedMessage());
         }

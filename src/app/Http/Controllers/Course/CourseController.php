@@ -10,7 +10,7 @@ use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class CourseController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -86,6 +86,11 @@ class CourseController extends Controller implements HasMiddleware
 
     public function destroy(Course $course)
     {
+
+        if ($blocked = DeleteGuard::blocker($course)) {
+        return back()->with('error', $blocked);
+        }
+
         $course->update(['is_delete' => true]);
 
         return redirect()->route('courses.index')->with('success', 'Course deleted.');

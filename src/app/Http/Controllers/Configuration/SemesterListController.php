@@ -8,6 +8,7 @@ use App\Models\Configuration\SemesterList;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Support\DeleteGuard;
 
 class SemesterListController extends Controller implements HasMiddleware
 {
@@ -69,6 +70,9 @@ class SemesterListController extends Controller implements HasMiddleware
 
     public function destroy(SemesterList $semester)
     {
+        if ($blocked = DeleteGuard::blocker($semester)) {
+        return back()->with('error', $blocked);
+        }
         $semester->update(['is_delete' => true]);
 
         return redirect()->route('semesters.index')->with('success', 'Semester deleted.');

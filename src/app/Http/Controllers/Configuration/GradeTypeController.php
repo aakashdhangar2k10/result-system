@@ -8,7 +8,7 @@ use App\Models\Configuration\GradeType;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class GradeTypeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -64,6 +64,9 @@ class GradeTypeController extends Controller implements HasMiddleware
 
     public function destroy(GradeType $gradeType)
     {
+        if ($blocked = DeleteGuard::blocker($gradeType)) {
+        return back()->with('error', $blocked);
+        }
         $gradeType->update(['is_delete' => true]);
 
         return redirect()->route('grade-types.index')->with('success', 'Grade type deleted.');

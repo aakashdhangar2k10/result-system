@@ -9,7 +9,7 @@ use App\Models\Subject\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class SubjectTypeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -72,6 +72,9 @@ class SubjectTypeController extends Controller implements HasMiddleware
 
     public function destroy(SubjectType $subjectType)
     {
+        if ($blocked = DeleteGuard::blocker($subjectType)) {
+        return back()->with('error', $blocked);
+        }
         // subjects keep pointing at their type, so a type in use can't be deleted
         if (Subject::where('subjecttypeid', $subjectType->subjecttypeid)->exists()) {
             return redirect()->route('subject-types.index')

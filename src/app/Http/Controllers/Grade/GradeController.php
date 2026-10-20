@@ -10,7 +10,7 @@ use App\Models\Grade\Grade;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class GradeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -91,6 +91,9 @@ class GradeController extends Controller implements HasMiddleware
 
     public function destroy(Grade $grade)
     {
+        if ($blocked = DeleteGuard::blocker($grade)) {
+        return back()->with('error', $blocked);
+        }
         $grade->update(['is_delete' => true]);
 
         return redirect()->route('grades.index')->with('success', 'Grade deleted.');

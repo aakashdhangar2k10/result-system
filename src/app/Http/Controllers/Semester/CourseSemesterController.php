@@ -10,7 +10,7 @@ use App\Models\Semester\CourseSemester;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class CourseSemesterController extends Controller implements HasMiddleware
 {
     use TermOptions;
@@ -69,6 +69,9 @@ class CourseSemesterController extends Controller implements HasMiddleware
 
     public function destroy(CourseSemester $courseSemester)
     {
+        if ($blocked = DeleteGuard::blocker($courseSemester)) {
+        return back()->with('error', $blocked);
+        }
         $courseSemester->update(['is_delete' => true]);
 
         return redirect()->route('course-semesters.index')->with('success', 'Semester deleted.');

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
-
+use App\Support\DeleteGuard;
 class DepartmentController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -80,6 +80,10 @@ class DepartmentController extends Controller implements HasMiddleware
 
     public function destroy(Department $department)
     {
+        if ($blocked = DeleteGuard::blocker($department)) {
+        return back()->with('error', $blocked);
+        }
+
         // Soft delete: keep the row, flag it as deleted
         $department->update(['is_delete' => true]);
 

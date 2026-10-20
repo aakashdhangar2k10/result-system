@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
-
+use App\Support\DeleteGuard;
 class StudentController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -165,6 +165,9 @@ class StudentController extends Controller implements HasMiddleware
 
     public function destroy(Student $student)
     {
+        if ($blocked = DeleteGuard::blocker($student)) {
+        return back()->with('error', $blocked);
+        }
     // soft delete: the row and the photo are kept, so the student can be restored later
     $student->update(['is_delete' => true]);
     return redirect()->route('students.index')->with('success', 'Student deleted.');

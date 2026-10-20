@@ -8,7 +8,7 @@ use App\Models\Configuration\DivisionType;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class DivisionTypeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -64,6 +64,9 @@ class DivisionTypeController extends Controller implements HasMiddleware
 
     public function destroy(DivisionType $divisionType)
     {
+        if ($blocked = DeleteGuard::blocker($divisionType)) {
+        return back()->with('error', $blocked);
+        }
         $divisionType->update(['is_delete' => true]);
 
         return redirect()->route('division-types.index')->with('success', 'Division type deleted.');

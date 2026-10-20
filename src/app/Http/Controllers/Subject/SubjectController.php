@@ -11,6 +11,7 @@ use App\Models\Subject\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Support\DeleteGuard;
 
 class SubjectController extends Controller implements HasMiddleware
 {
@@ -89,6 +90,9 @@ class SubjectController extends Controller implements HasMiddleware
 
     public function destroy(Subject $subject)
     {
+        if ($blocked = DeleteGuard::blocker($subject)) {
+        return back()->with('error', $blocked);
+        }
         $subject->update(['is_delete' => true]);
 
         return redirect()->route('subjects.index')->with('success', 'Subject deleted.');

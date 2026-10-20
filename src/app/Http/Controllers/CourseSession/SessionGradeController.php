@@ -14,7 +14,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Models\Division\Division;
 use App\Models\Grade\Grade;
-
+use App\Support\DeleteGuard;
 class SessionGradeController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -98,6 +98,9 @@ class SessionGradeController extends Controller implements HasMiddleware
 
     public function destroy(SessionGrade $sessionGrade)
     {
+        if ($blocked = DeleteGuard::blocker($sessionGrade)) {
+        return back()->with('error', $blocked);
+        }
         $sessionGrade->update(['is_delete' => true]);
 
         return redirect()->route('session-grades.index')->with('success', 'Session grade deleted.');

@@ -28,7 +28,8 @@
 @stop
 
 @section('content')
-@if (session('success'))
+@include('partials.flash-error')
+    @if (session('success'))
 <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 

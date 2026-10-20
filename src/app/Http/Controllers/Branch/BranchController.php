@@ -9,6 +9,7 @@ use App\Models\Course\Course;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Support\DeleteGuard;
 
 class BranchController extends Controller implements HasMiddleware
 {
@@ -77,6 +78,10 @@ class BranchController extends Controller implements HasMiddleware
 
     public function destroy(Branch $branch)
     {
+        if ($blocked = DeleteGuard::blocker($branch)) {
+        return back()->with('error', $blocked);
+        }
+        
         $branch->update(['is_delete' => true]);
 
         return redirect()->route('branches.index')->with('success', 'Branch deleted.');

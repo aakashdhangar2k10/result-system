@@ -10,7 +10,7 @@ use App\Models\Course\Course;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use App\Support\DeleteGuard;
 class BatchController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
@@ -80,6 +80,9 @@ class BatchController extends Controller implements HasMiddleware
 
     public function destroy(Batch $batch)
     {
+        if ($blocked = DeleteGuard::blocker($batch)) {
+        return back()->with('error', $blocked);
+        }
         $batch->update(['is_delete' => true]);
 
         return redirect()->route('batches.index')->with('success', 'Batch deleted.');
