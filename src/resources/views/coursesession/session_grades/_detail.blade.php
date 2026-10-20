@@ -5,6 +5,20 @@
     @endif
 </p>
 
+<div class="mb-4">
+    <h5 class="text-center text-info mb-2">Result rule</h5>
+    <div class="text-center">
+        @foreach ($sessionGrade->rule_lines as $line)
+            <div class="mb-1">
+                <span class="badge text-bg-{{ $line['color'] }} me-1">{{ $line['label'] }}</span> {{ $line['text'] }}
+            </div>
+        @endforeach
+        <div class="text-muted small">
+            The credits of failed subjects {{ $sessionGrade->sgpa_with_failed ? 'count in' : 'are left out of' }} the SGPA.
+        </div>
+    </div>
+</div>
+
 <h5 class="text-center text-info mb-3">
     Grade Name: {{ $sessionGrade->gradeType?->coursetypename ?? '—' }}
 </h5>

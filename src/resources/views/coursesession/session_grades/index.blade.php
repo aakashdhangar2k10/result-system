@@ -96,6 +96,7 @@
                         <x-sortable-th column="session" label="Session" />
                         <x-sortable-th column="gradetype" label="Grade Type" />
                         <x-sortable-th column="divisiontype" label="Division Type" />
+                        <th>Result Rule</th>
                         <th>Description</th>
                         <x-sortable-th column="active" label="Status" />
                        <th style="width:150px">Action</th>
@@ -114,6 +115,7 @@
                         </td>
                         <td>{{ $sessionGrade->gradeType?->coursetypename ?? '—' }}</td>
                         <td>{{ $sessionGrade->divisionType?->divtypename ?? '—' }}</td>
+                        <td class="small">{{ $sessionGrade->rule_summary }}</td>
                         <td>{{ \Illuminate\Support\Str::limit($sessionGrade->description, 40) ?: '—' }}</td>
                         <td>
                             <span class="badge text-bg-{{ $sessionGrade->active ? 'success' : 'secondary' }}">

@@ -15,12 +15,13 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use RuntimeException;
+use App\Models\Result\SemesterResult;
+use App\Models\Student\Student;
+use App\Services\SemesterResultService;
 
 class ResultController extends Controller implements HasMiddleware
 {
-    public function __construct(private ResultService $service)
-    {
-    }
+    public function __construct(private ResultService $service, private SemesterResultService $sgpa) {}
 
     public static function middleware(): array
     {
@@ -30,10 +31,66 @@ class ResultController extends Controller implements HasMiddleware
             new Middleware('permission:subjectresults.edit', only: ['edit', 'update']),
             new Middleware('permission:subjectresults.create|subjectresults.edit', only: ['entry', 'calculate']),
             new Middleware('permission:subjectresults.delete', only: ['destroy']),
+            new Middleware('permission:subjectresults.view', only: ['index', 'show', 'studentDetail']),
+            new Middleware('permission:semesterresults.calculate', only: ['calculateSgpa']),
         ];
     }
 
     // ---- result sheet: students x subjects of one exam
+    // public function index(Request $request)
+    // {
+    //     $view = $request->view === 'marks' ? 'marks' : 'grades';
+    //     $exam = $request->filled('semesterexamid')
+    //         ? SemesterExam::with(['course', 'batch.branch', 'term'])->find($request->semesterexamid)
+    //         : null;
+
+    //     $results = collect();
+    //     $students = collect();
+    //     $cells = [];
+    //     $stats = [];
+    //     $missing = collect();
+
+    //     if ($exam) {
+    //         $results = SubjectResult::with('subject')
+    //             ->where('semesterexamid', $exam->semesterexamid)
+    //             ->get()
+    //             ->sortBy(fn($result) => [$result->subject?->subjectorder ?? 0, $result->resultid])
+    //             ->values();
+
+    //         $items = SubjectResultItem::with('student')
+    //             ->whereIn('resultid', $results->pluck('resultid'))
+    //             ->get();
+
+    //         $students = $items->pluck('student')->filter()->unique('studentid')->sortBy('rollno')->values();
+
+    //         foreach ($items as $item) {
+    //             $cells[$item->studentid][$item->resultid] = $item;
+
+    //             $stat = $stats[$item->resultid] ?? ['total' => 0, 'pass' => 0, 'fail' => 0, 'absent' => 0];
+    //             $stat['total']++;
+    //             $item->is_absent ? $stat['absent']++ : ($item->is_pass ? $stat['pass']++ : $stat['fail']++);
+    //             $stats[$item->resultid] = $stat;
+    //         }
+
+    //         // subjects of this course and semester that have no result yet
+    //         $missing = Subject::where('courseid', $exam->courseid)
+    //             ->where('semid', $exam->semid)
+    //             ->where('active', true)
+    //             ->whereNotIn('subjectid', $results->pluck('subjectid'))
+    //             ->orderBy('subjectorder')
+    //             ->get();
+    //     }
+
+    //     return view('result.index', [
+    //         'view' => $view,
+    //         'exam' => $exam,
+    //         'results' => $results,
+    //         'students' => $students,
+    //         'cells' => $cells,
+    //         'stats' => $stats,
+    //         'missing' => $missing,
+    //     ] + $this->formData());
+    // }
     public function index(Request $request)
     {
         $view = $request->view === 'marks' ? 'marks' : 'grades';
@@ -47,11 +104,16 @@ class ResultController extends Controller implements HasMiddleware
         $stats = [];
         $missing = collect();
 
+        $semResult = null;
+        $sgpaItems = collect();
+        $rule = null;
+        $outdated = false;
+
         if ($exam) {
             $results = SubjectResult::with('subject')
                 ->where('semesterexamid', $exam->semesterexamid)
                 ->get()
-                ->sortBy(fn ($result) => [$result->subject?->subjectorder ?? 0, $result->resultid])
+                ->sortBy(fn($result) => [$result->subject?->subjectorder ?? 0, $result->resultid])
                 ->values();
 
             $items = SubjectResultItem::with('student')
@@ -76,6 +138,15 @@ class ResultController extends Controller implements HasMiddleware
                 ->whereNotIn('subjectid', $results->pluck('subjectid'))
                 ->orderBy('subjectorder')
                 ->get();
+
+            // SGPA and the result rule
+            $rule = $this->sgpa->rule($exam);
+            $semResult = SemesterResult::with(['items', 'calculator'])->where('semesterexamid', $exam->semesterexamid)->first();
+
+            if ($semResult) {
+                $sgpaItems = $semResult->items->keyBy('studentid');
+                $outdated = $semResult->is_stale || ($rule && $semResult->ruleDiffers($rule));
+            }
         }
 
         return view('result.index', [
@@ -86,6 +157,10 @@ class ResultController extends Controller implements HasMiddleware
             'cells' => $cells,
             'stats' => $stats,
             'missing' => $missing,
+            'semResult' => $semResult,
+            'sgpaItems' => $sgpaItems,
+            'rule' => $rule,
+            'outdated' => $outdated,
         ] + $this->formData());
     }
 
@@ -144,7 +219,7 @@ class ResultController extends Controller implements HasMiddleware
 
         return response()->json([
             'ok' => true,
-            'rows' => collect($processed['computed'])->map(fn ($data) => [
+            'rows' => collect($processed['computed'])->map(fn($data) => [
                 'internal' => ResultService::fmt($data['internal']),
                 'external' => $data['external_absent'] ? 'Ab' : ResultService::fmt($data['external']),
                 'total' => ResultService::fmt($data['total']),
@@ -185,7 +260,52 @@ class ResultController extends Controller implements HasMiddleware
 
         return view('result._detail', [
             'result' => $subjectResult,
-            'items' => $subjectResult->items->sortBy(fn ($item) => $item->student?->rollno)->values(),
+            'items' => $subjectResult->items->sortBy(fn($item) => $item->student?->rollno)->values(),
+        ]);
+    }
+
+    // "Calculate SGPA": answers the progress popup
+    public function calculateSgpa(Request $request, SemesterExam $semesterExam)
+    {
+        $outcome = $this->sgpa->calculate($semesterExam, $request->user()->id);
+
+        if ($outcome['errors']) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'SGPA cannot be calculated yet.',
+                'errors' => $outcome['errors'],
+            ], 422);
+        }
+
+        $rule = $outcome['rule'];
+        $counts = $outcome['counts'];
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'SGPA calculated successfully!',
+            'summary' => "{$outcome['count']} students · {$rule->pass_label} {$counts['pass']}"
+                . " · {$rule->promoted_label} {$counts['promoted']} · {$rule->fail_label} {$counts['fail']}",
+        ]);
+    }
+
+    // popup of one student: every subject, the SGPA working and the reason for the result
+    public function studentDetail(Request $request, SemesterExam $semesterExam, Student $student)
+    {
+        if (! $request->ajax()) {
+            return redirect()->route('results.index');
+        }
+
+        $semesterExam->load(['course', 'batch.branch', 'term']);
+
+        $header = SemesterResult::where('semesterexamid', $semesterExam->semesterexamid)->first();
+
+        return view('result._student', [
+            'exam' => $semesterExam,
+            'student' => $student,
+            'header' => $header,
+            'item' => $header?->items()->where('studentid', $student->studentid)->first(),
+            'lines' => $this->sgpa->breakdown($semesterExam, $student->studentid),
+            'explainer' => $this->sgpa,
         ]);
     }
 

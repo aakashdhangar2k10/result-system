@@ -47,7 +47,7 @@ class ResultService
 
     public function letters(Collection $scale, int $attempt): array
     {
-        return $scale->map(fn ($row) => self::letter($row, $attempt))->unique()->values()->all();
+        return $scale->map(fn($row) => self::letter($row, $attempt))->unique()->values()->all();
     }
 
     // ------------------------------------------------------------------ what a result needs
@@ -130,16 +130,16 @@ class ResultService
                 ->where('o.is_delete', false)
                 ->where('o.batchid', $exam->batchid)
                 ->where('o.subjectid', $subject->subjectid)
-                ->pluck('i.studentid')->map(fn ($id) => (int) $id)->all();
+                ->pluck('i.studentid')->map(fn($id) => (int) $id)->all();
 
-            $students = $students->filter(fn ($student) => in_array((int) $student->studentid, $chosen, true));
+            $students = $students->filter(fn($student) => in_array((int) $student->studentid, $chosen, true));
         }
 
         // a student who has already passed the subject does not sit it again
         $examIdsOfList = SemesterExam::where('courseid', $exam->courseid)
             ->where('batchid', $exam->batchid)
             ->where('semid', $exam->semid)
-            ->pluck('semesterexamid')->map(fn ($id) => (int) $id);
+            ->pluck('semesterexamid')->map(fn($id) => (int) $id);
 
         $passed = SubjectResultItem::query()
             ->join('mark_result as r', 'r.resultid', '=', 'mark_result_item.resultid')
@@ -147,11 +147,11 @@ class ResultService
             ->where('r.subjectid', $subject->subjectid)
             ->where('mark_result_item.is_pass', true)
             ->whereIn('mark_result_item.studentid', $students->pluck('studentid'))
-            ->when($editing, fn ($q) => $q->where('r.resultid', '<>', $editing->resultid))
+            ->when($editing, fn($q) => $q->where('r.resultid', '<>', $editing->resultid))
             ->get(['mark_result_item.studentid', 'r.semesterexamid']);
 
         $students = $students->reject(function ($student) use ($passed, $examIdsOfList) {
-            $exams = $passed->where('studentid', $student->studentid)->pluck('semesterexamid')->map(fn ($id) => (int) $id);
+            $exams = $passed->where('studentid', $student->studentid)->pluck('semesterexamid')->map(fn($id) => (int) $id);
 
             if ($exams->isEmpty()) {
                 return false;
@@ -187,7 +187,7 @@ class ResultService
      */
     public function process(array $input, ?SubjectResult $editing = null): array
     {
-        $fail = fn (string $message) => ['errors' => ['form' => $message]];
+        $fail = fn(string $message) => ['errors' => ['form' => $message]];
 
         $exam = SemesterExam::find($input['semesterexamid'] ?? null);
         $subject = Subject::with('subjectType')->find($input['subjectid'] ?? null);
@@ -204,7 +204,7 @@ class ResultService
 
         $taken = SubjectResult::where('semesterexamid', $exam->semesterexamid)
             ->where('subjectid', $subject->subjectid)
-            ->when($editing, fn ($q) => $q->where('resultid', '<>', $editing->resultid))
+            ->when($editing, fn($q) => $q->where('resultid', '<>', $editing->resultid))
             ->exists();
 
         if ($taken) {
@@ -230,8 +230,8 @@ class ResultService
 
         // the submitted students must be exactly the students of the subject
         $rows = (array) ($input['rows'] ?? []);
-        $expected = $students->keys()->map(fn ($id) => (int) $id)->sort()->values()->all();
-        $given = collect(array_keys($rows))->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $expected = $students->keys()->map(fn($id) => (int) $id)->sort()->values()->all();
+        $given = collect(array_keys($rows))->map(fn($id) => (int) $id)->sort()->values()->all();
 
         if ($expected !== $given) {
             return $fail('The students of this subject changed. Reload the page and try again.');
@@ -263,7 +263,7 @@ class ResultService
         // ---- grade entry: the grade is picked, nothing is calculated
         if ($mode === 'grade') {
             $letter = trim((string) ($row['grade'] ?? ''));
-            $match = $scale->first(fn ($g) => $letter !== '' && strcasecmp(self::letter($g, $attempt), $letter) === 0);
+            $match = $scale->first(fn($g) => $letter !== '' && strcasecmp(self::letter($g, $attempt), $letter) === 0);
 
             if (! $match) {
                 return [null, ['grade' => 'Select a grade.']];
@@ -343,7 +343,7 @@ class ResultService
         $data['is_absent'] = $hasExternal ? $data['external_absent'] : $internalAbsent;
 
         if ($data['is_absent']) {
-            $absentRow = $scale->first(fn ($g) => strcasecmp(self::letter($g, $attempt), self::ABSENT_GRADE) === 0);
+            $absentRow = $scale->first(fn($g) => strcasecmp(self::letter($g, $attempt), self::ABSENT_GRADE) === 0);
 
             $data['grade'] = $absentRow ? self::letter($absentRow, $attempt) : self::ABSENT_GRADE;
             $data['grade_point'] = $absentRow ? self::point($absentRow, $attempt) : 0;
@@ -355,7 +355,7 @@ class ResultService
         // round to a whole number, then find the grade band (change round() to floor() or ceil() for another policy)
         $score = (int) round($data['percentage']);
 
-        $match = $scale->first(fn ($g) => strcasecmp(self::letter($g, $attempt), self::ABSENT_GRADE) !== 0
+        $match = $scale->first(fn($g) => strcasecmp(self::letter($g, $attempt), self::ABSENT_GRADE) !== 0
             && $score >= $g->startscore && $score <= $g->endscore);
 
         if (! $match) {
@@ -425,6 +425,7 @@ class ResultService
 
             // the first result of a semester locks its student list
             $this->lockList($processed['context']['list'], $userId);
+            $this->markStale($exam->semesterexamid);
 
             return $result;
         });
@@ -435,7 +436,26 @@ class ResultService
         DB::transaction(function () use ($result, $userId) {
             $result->update(['is_delete' => true, 'updated_by' => $userId]);
             $this->unlockIfEmpty($result, $userId);
+            $this->markStale($result->semesterexamid);
         });
+    }
+
+    // marks changed: the SGPA of this exam (and of later attempts of the same semester) is out of date
+    public function markStale(int $semesterExamId): void
+    {
+        $exam = SemesterExam::find($semesterExamId);
+
+        if (! $exam) {
+            return;
+        }
+
+        $ids = SemesterExam::where('courseid', $exam->courseid)
+            ->where('batchid', $exam->batchid)
+            ->where('semid', $exam->semid)
+            ->where('attempt', '>=', $exam->attempt)
+            ->pluck('semesterexamid');
+
+        DB::table('mark_semester_result')->whereIn('semesterexamid', $ids)->update(['is_stale' => true]);
     }
 
     private function lockList(StudentList $list, int $userId): void
@@ -490,11 +510,21 @@ class ResultService
     private function blank(): array
     {
         return [
-            't1' => null, 't2' => null, 't3' => null,
-            't1_absent' => false, 't2_absent' => false, 't3_absent' => false,
-            'internal' => null, 'external' => null, 'external_absent' => false,
-            'total' => null, 'percentage' => null,
-            'grade' => null, 'grade_point' => 0, 'is_absent' => false, 'is_pass' => false,
+            't1' => null,
+            't2' => null,
+            't3' => null,
+            't1_absent' => false,
+            't2_absent' => false,
+            't3_absent' => false,
+            'internal' => null,
+            'external' => null,
+            'external_absent' => false,
+            'total' => null,
+            'percentage' => null,
+            'grade' => null,
+            'grade_point' => 0,
+            'is_absent' => false,
+            'is_pass' => false,
         ];
     }
 

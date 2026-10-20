@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Configuration\CourseTypeController;
 use App\Http\Controllers\Configuration\SemesterListController;
 use App\Http\Controllers\Configuration\GradeTypeController;
@@ -34,8 +35,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
-    
+    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+
     Route::resource('departments', DepartmentController::class)->except('show');
     Route::resource('grades', GradeController::class)->except('show');
     Route::resource('divisions', DivisionController::class)->except('show');
@@ -50,7 +51,6 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
         Route::resource('grade-types', GradeTypeController::class)->except('show');
         Route::resource('division-types', DivisionTypeController::class)->except('show');
         Route::resource('subject-types', SubjectTypeController::class)->except('show');
-       
     });
 
     Route::resource('course-semesters', CourseSemesterController::class)->except('show');
@@ -70,14 +70,14 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
 
     // studentImport
     Route::prefix('student-imports')->name('student-imports.')->controller(StudentImportController::class)->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('create', 'create')->name('create');
-    Route::get('template', 'template')->name('template');
-    Route::post('/', 'store')->name('store');
-    Route::get('{studentImport}', 'show')->name('show');
-    Route::post('{studentImport}/confirm', 'confirm')->name('confirm');
-    Route::post('{studentImport}/clear', 'clear')->name('clear');
-    Route::delete('{studentImport}', 'destroy')->name('destroy');
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::get('template', 'template')->name('template');
+        Route::post('/', 'store')->name('store');
+        Route::get('{studentImport}', 'show')->name('show');
+        Route::post('{studentImport}/confirm', 'confirm')->name('confirm');
+        Route::post('{studentImport}/clear', 'clear')->name('clear');
+        Route::delete('{studentImport}', 'destroy')->name('destroy');
     });
 
     Route::get('student-lists/options', [StudentListController::class, 'options'])->name('student-lists.options');
@@ -88,17 +88,31 @@ Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
 
     Route::get('optional-subject-students/options', [OptionalSubjectStudentController::class, 'students'])->name('optional-subject-students.options');
     Route::resource('optional-subject-students', OptionalSubjectStudentController::class)->except('show');
-    
+
     // Result
+    // Route::prefix('results')->name('results.')->controller(ResultController::class)->group(function () {
+    //     Route::get('/', 'index')->name('index');
+    //     Route::get('create', 'create')->name('create');
+    //     Route::get('entry', 'entry')->name('entry');
+    //     Route::post('calculate', 'calculate')->name('calculate');
+    //     Route::post('/', 'store')->name('store');
+    //     Route::get('{subjectResult}', 'show')->name('show');
+    //     Route::get('{subjectResult}/edit', 'edit')->name('edit');
+    //     Route::put('{subjectResult}', 'update')->name('update');
+    //     Route::delete('{subjectResult}', 'destroy')->name('destroy');
+    // });
+
     Route::prefix('results')->name('results.')->controller(ResultController::class)->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('create', 'create')->name('create');
-    Route::get('entry', 'entry')->name('entry');
-    Route::post('calculate', 'calculate')->name('calculate');
-    Route::post('/', 'store')->name('store');
-    Route::get('{subjectResult}', 'show')->name('show');
-    Route::get('{subjectResult}/edit', 'edit')->name('edit');
-    Route::put('{subjectResult}', 'update')->name('update');
-    Route::delete('{subjectResult}', 'destroy')->name('destroy');
-});
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::get('entry', 'entry')->name('entry');
+        Route::post('calculate', 'calculate')->name('calculate');
+        Route::post('semester/{semesterExam}/sgpa', 'calculateSgpa')->name('sgpa');
+        Route::get('semester/{semesterExam}/student/{student}', 'studentDetail')->name('student');
+        Route::post('/', 'store')->name('store');
+        Route::get('{subjectResult}', 'show')->name('show');
+        Route::get('{subjectResult}/edit', 'edit')->name('edit');
+        Route::put('{subjectResult}', 'update')->name('update');
+        Route::delete('{subjectResult}', 'destroy')->name('destroy');
+    });
 });

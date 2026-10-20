@@ -42,8 +42,16 @@ class SessionGradeRequest extends FormRequest
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'active' => ['nullable', 'boolean'],
+
+            'max_backlogs' => ['required', 'integer', 'min:0', 'max:20'],
+            'min_sgpa' => ['nullable', 'numeric', 'min:0', 'max:10'],
+            'sgpa_with_failed' => ['nullable', 'boolean'],
+            'pass_label' => ['required', 'string', 'max:30'],
+            'promoted_label' => ['required', 'string', 'max:30', 'different:pass_label'],
+            'fail_label' => ['required', 'string', 'max:30', 'different:pass_label', 'different:promoted_label'],
         ];
     }
+
 
     public function messages(): array
     {
@@ -51,5 +59,16 @@ class SessionGradeRequest extends FormRequest
             'batchid.exists' => 'The selected session does not belong to the selected course.',
             'batchid.unique' => 'This session already has a grade setup. Edit the existing one instead.',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $upper = fn($value) => is_string($value) ? mb_strtoupper(trim($value)) : $value;
+
+        $this->merge([
+            'pass_label' => $upper($this->pass_label),
+            'promoted_label' => $upper($this->promoted_label),
+            'fail_label' => $upper($this->fail_label),
+        ]);
     }
 }

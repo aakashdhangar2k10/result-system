@@ -110,6 +110,7 @@ class SessionGradeController extends Controller implements HasMiddleware
     {
         $data = $request->validated();
         $data['active'] = $request->boolean('active');
+        $data['sgpa_with_failed'] = $request->boolean('sgpa_with_failed');
 
         return $data;
     }
