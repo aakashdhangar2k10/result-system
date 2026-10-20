@@ -2,8 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Administration\Group;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -13,16 +18,29 @@ class User extends Authenticatable implements JWTSubject
 
     protected string $guard_name = 'api';
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'active', 'is_delete', 'all_departments'];
 
     protected $hidden = ['password', 'remember_token'];
+
+    private ?Collection $groupPermissionCache = null;
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
+            'is_delete' => 'boolean',
+            'all_departments' => 'boolean',
         ];
+    }
+
+    // A deleted user is hidden everywhere, so it can never log in
+    protected static function booted(): void
+    {
+        static::addGlobalScope('notDeleted', function (Builder $query) {
+            $query->where('users.is_delete', false);
+        });
     }
 
     public function getJWTIdentifier()
@@ -33,5 +51,41 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims(): array
     {
         return ['roles' => $this->getRoleNames()];
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'mark_group_user', 'user_id', 'groupid', 'id', 'groupid');
+    }
+
+    public function departments(): BelongsToMany
+    {
+        return $this->belongsToMany(Department::class, 'mark_user_department', 'user_id', 'deptid', 'id', 'deptid');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin', 'api');
+    }
+
+    // Permissions this user gets from the groups he belongs to (active groups only)
+    public function groupPermissionNames(): Collection
+    {
+        return $this->groupPermissionCache ??= DB::table('mark_group_user as gu')
+            ->join('mark_group as g', 'g.groupid', '=', 'gu.groupid')
+            ->join('mark_group_permission as gp', 'gp.groupid', '=', 'g.groupid')
+            ->join('permissions as p', 'p.id', '=', 'gp.permission_id')
+            ->where('gu.user_id', $this->getKey())
+            ->where('g.active', true)
+            ->where('g.is_delete', false)
+            ->pluck('p.name')
+            ->unique()
+            ->values();
+    }
+
+    // roles + groups together
+    public function allPermissionNames(): Collection
+    {
+        return $this->getAllPermissions()->pluck('name')->merge($this->groupPermissionNames())->unique()->values();
     }
 }

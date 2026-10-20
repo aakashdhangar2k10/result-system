@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class StudentList extends Model
 {
     // entries added from other sessions of the same course
@@ -65,12 +66,17 @@ class StudentList extends Model
 
     public function locker(): BelongsTo
     {
-    return $this->belongsTo(User::class, 'locked_by');
+        return $this->belongsTo(User::class, 'locked_by');
     }
 
     // newest first
     public function lockLog(): HasMany
     {
-    return $this->hasMany(StudentListLock::class, 'studentlistid', 'studentlistid')->latest('lockid');
+        return $this->hasMany(StudentListLock::class, 'studentlistid', 'studentlistid')->latest('lockid');
+    }
+
+    public function limitToDepartments(Builder $query): void
+    {
+        $query->whereIn($this->qualifyColumn('semesterid'), CourseSemester::select('semesterid'));
     }
 }

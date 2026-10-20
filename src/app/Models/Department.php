@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-
 class Department extends Model
 {
     protected $table = 'mark_department';
@@ -21,6 +20,7 @@ class Department extends Model
         'joindate', 'active', 'is_delete',
     ];
 
+    
     protected function casts(): array
     {
         return [
@@ -43,6 +43,11 @@ class Department extends Model
     public function getRouteKeyName(): string
     {
         return 'deptid';
+    }
+
+    public function limitToDepartments(Builder $query): void
+    {
+    $query->whereIn($this->qualifyColumn('deptid'), DepartmentAccess::departmentIds());
     }
 
     protected function logoUrl(): Attribute

@@ -40,23 +40,38 @@ class RolesAndAdminSeeder extends Seeder
             'optionalsubjectstudents.view', 'optionalsubjectstudents.create', 'optionalsubjectstudents.edit', 'optionalsubjectstudents.delete',
             'subjectresults.view', 'subjectresults.create', 'subjectresults.edit', 'subjectresults.delete',
             'semesterresults.calculate','semesterresults.download',
+            'adminusers.view', 'adminusers.create', 'adminusers.edit', 'adminusers.delete',
+            'adminroles.view', 'adminroles.create', 'adminroles.edit', 'adminroles.delete',
+            'admingroups.view', 'admingroups.create', 'admingroups.edit', 'admingroups.delete',
         ];
 
         foreach ($permissions as $p) {
             Permission::findOrCreate($p, 'api');
         }
 
+        // the administrator always has every permission
         Role::findOrCreate('admin', 'api')->syncPermissions($permissions);
 
-        Role::findOrCreate('teacher', 'api')->syncPermissions([
-            'marks.enter', 'marks.view', 'results.view',
-            'departments.view', 'coursetypes.view','semesters.view','gradetypes.view','divisiontypes.view','grades.view','divisions.view',
-            'courses.view','branches.view','batches.view','sessiongrades.view','coursesemesters.view', 'semesterexams.view','subjects.view',
-            'subjecttypes.view','subjectorders.view','sessionsubjects.view','students.view',
-            'subjectresults.view', 'subjectresults.create', 'subjectresults.edit',
+       // first-time defaults only: after that these roles are managed under Administration → Roles
+        $teacher = Role::findOrCreate('teacher', 'api');
+        if ($teacher->wasRecentlyCreated) {
+        $teacher->syncPermissions([
+        'marks.enter', 'marks.view', 'results.view',
+        'departments.view', 'coursetypes.view', 'semesters.view',
+        'gradetypes.view', 'divisiontypes.view', 'grades.view', 'divisions.view',
+        'courses.view', 'branches.view', 'batches.view', 'sessiongrades.view',
+        'coursesemesters.view', 'semesterexams.view', 'subjects.view', 'subjecttypes.view',
+        'subjectorders.view', 'sessionsubjects.view', 'students.view', 'studentlists.view',
+        'optionalsubjectstudents.view',
+        'subjectresults.view', 'subjectresults.create', 'subjectresults.edit',
+        'semesterresults.download',
         ]);
+        }
 
-        Role::findOrCreate('student', 'api')->syncPermissions(['results.view']);
+       $student = Role::findOrCreate('student', 'api');
+        if ($student->wasRecentlyCreated) {
+            $student->syncPermissions(['results.view']);
+        }
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],

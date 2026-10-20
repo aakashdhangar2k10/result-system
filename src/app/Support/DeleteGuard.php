@@ -19,6 +19,10 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Semester\SemesterExam;
 use Illuminate\Support\Facades\DB;
 
+use App\Models\Administration\Group;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+
 class DeleteGuard
 {
     /** Where is this record used? Returns ['Place' => count], empty when it is free. */
@@ -84,6 +88,33 @@ class DeleteGuard
                 'name' => fn($m) => $m->fullname,
                 'uses' => [
                     'Courses' => $live('mark_course', 'deptid'),
+                ],
+                'Administration → Users' => fn($id) => DB::table('mark_user_department as ud')
+                    ->join('users as u', 'u.id', '=', 'ud.user_id')
+                    ->where('u.is_delete', false)
+                    ->where('ud.deptid', $id),
+            ],
+
+            Role::class => [
+                'label' => 'Role',
+                'name' => fn($m) => $m->name,
+                'uses' => [
+                    'Administration → Users' => fn($id) => DB::table('model_has_roles as mr')
+                        ->join('users as u', 'u.id', '=', 'mr.model_id')
+                        ->where('mr.model_type', User::class)
+                        ->where('u.is_delete', false)
+                        ->where('mr.role_id', $id),
+                ],
+            ],
+
+            Group::class => [
+                'label' => 'Group',
+                'name' => fn($m) => $m->name,
+                'uses' => [
+                    'Administration → Users' => fn($id) => DB::table('mark_group_user as gu')
+                        ->join('users as u', 'u.id', '=', 'gu.user_id')
+                        ->where('u.is_delete', false)
+                        ->where('gu.groupid', $id),
                 ],
             ],
 

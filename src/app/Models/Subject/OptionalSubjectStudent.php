@@ -68,4 +68,9 @@ class OptionalSubjectStudent extends Model
 
         return $semester ? StudentList::where('semesterid', $semester->semesterid)->first() : null;
     }
+
+    public function limitToDepartments(Builder $query): void
+    {
+        $query->whereIn($this->qualifyColumn('subjectid'), Subject::select('subjectid'));
+    }
 }

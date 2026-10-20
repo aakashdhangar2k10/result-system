@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Administration\GroupController;
+use App\Http\Controllers\Administration\RoleController;
+use App\Http\Controllers\Administration\UserController;
+
 use App\Http\Controllers\Configuration\CourseTypeController;
 use App\Http\Controllers\Configuration\SemesterListController;
 use App\Http\Controllers\Configuration\GradeTypeController;
@@ -28,12 +32,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
 
+Route::prefix('administration')->group(function () {
+    Route::resource('users', UserController::class)->names('admin-users');
+    Route::resource('roles', RoleController::class)->except('show')->names('admin-roles');
+    Route::resource('groups', GroupController::class)->except('show')->names('admin-groups');
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [WebAuthController::class, 'login']);
 });
 
-Route::middleware(['auth', 'role:admin|teacher|student'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 

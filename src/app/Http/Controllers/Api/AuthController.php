@@ -15,7 +15,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! $token = auth('api')->attempt($credentials)) {
+        if (! $token = auth('api')->attempt($credentials + ['active' => true])) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -29,7 +29,8 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
             'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
+           'permissions' => $user->allPermissionNames(),
+            
         ]);
     }
 

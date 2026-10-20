@@ -19,7 +19,7 @@ class WebAuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::guard('web')->attempt($credentials + ['active' => true], $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended('/dashboard');
         }

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,5 +22,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+
+        // access given through groups
+        Gate::before(function ($user, string $ability) {
+            return $user instanceof User && $user->groupPermissionNames()->contains($ability) ? true : null;
+        });
     }
 }
