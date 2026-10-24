@@ -44,6 +44,7 @@ class RolesAndAdminSeeder extends Seeder
             'adminroles.view', 'adminroles.create', 'adminroles.edit', 'adminroles.delete',
             'admingroups.view', 'admingroups.create', 'admingroups.edit', 'admingroups.delete',
             'dashboard.view',
+            'resulttemplates.view', 'resulttemplates.create', 'resulttemplates.edit', 'resulttemplates.delete',
         ];
 
         foreach ($permissions as $p) {

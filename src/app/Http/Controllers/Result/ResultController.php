@@ -20,12 +20,16 @@ use App\Models\Student\Student;
 use App\Services\SemesterResultService;
 use App\Services\ResultExportService;
 
+use App\Models\Result\ResultTemplate;
+use App\Services\GradeSheetService;
+
 class ResultController extends Controller implements HasMiddleware
 {
     public function __construct(
         private ResultService $service,
         private SemesterResultService $sgpa,
-        private ResultExportService $export
+        private ResultExportService $export,
+        private GradeSheetService $sheets
     ) {}
 
     public static function middleware(): array
@@ -39,6 +43,7 @@ class ResultController extends Controller implements HasMiddleware
             new Middleware('permission:subjectresults.view', only: ['index', 'show', 'studentDetail']),
             new Middleware('permission:semesterresults.calculate', only: ['calculateSgpa']),
             new Middleware('permission:semesterresults.download', only: ['download']),
+            new Middleware('permission:semesterresults.download', only: ['download', 'gradesheet']),
         ];
     }
 
@@ -167,6 +172,8 @@ class ResultController extends Controller implements HasMiddleware
             'sgpaItems' => $sgpaItems,
             'rule' => $rule,
             'outdated' => $outdated,
+            'templates' => ResultTemplate::where('active', true)->orderByDesc('is_default')->orderBy('name')->get(),
+            'defaultTemplateId' => $exam ? $this->sheets->template($exam)->templateid : null,
         ] + $this->formData());
     }
 
@@ -343,6 +350,47 @@ class ResultController extends Controller implements HasMiddleware
         return $options['format'] === 'pdf'
             ? $this->export->pdf($sheet)
             : $this->export->xlsx($sheet);
+    }
+
+    // grade sheets: one page per student (or one student), as a PDF in the browser
+    public function gradesheet(Request $request, SemesterExam $semesterExam)
+    {
+        $options = $request->validate([
+            'template' => ['nullable', 'integer'],
+            'header' => ['nullable', 'in:0,1'],
+            'photo' => ['nullable', 'in:0,1'],
+            'student' => ['nullable', 'integer'],
+            'sort' => ['nullable', 'in:roll,enrollment,name,sgpa'],
+            'dir' => ['nullable', 'in:asc,desc'],
+        ]);
+
+        if ($message = $this->notReady($semesterExam)) {
+            return back()->with('error', $message);
+        }
+
+        $template = $this->sheets->template($semesterExam, $options['template'] ?? null);
+        $pack = $this->sheets->pack($semesterExam, $template, $options);
+
+        abort_if(empty($pack['sheets']), 404, 'No student found for this grade sheet.');
+
+        return $this->sheets->pdf($pack);
+    }
+
+    private function notReady(SemesterExam $exam): ?string
+    {
+        $header = SemesterResult::where('semesterexamid', $exam->semesterexamid)->first();
+
+        if (! $header) {
+            return 'Calculate the SGPA before you print grade sheets.';
+        }
+
+        $rule = $this->sgpa->rule($exam);
+
+        if ($header->is_stale || ($rule && $header->ruleDiffers($rule))) {
+            return 'Marks or the result rule changed after the SGPA was calculated. Recalculate the SGPA first.';
+        }
+
+        return null;
     }
 
     public function edit(SubjectResult $subjectResult)

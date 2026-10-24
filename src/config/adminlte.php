@@ -401,11 +401,25 @@ return [
         ['header' => 'RESULT'],
         [
             'text' => 'Result',
-            'route' => 'results.index',
             'icon' => 'bi bi-card-list',
-            'active' => ['results*'],
-            'can' => 'subjectresults.view',
+            'submenu' => [
+                [
+                    'text' => 'Result',
+                    'route' => 'results.index',
+                    'icon' => 'bi bi-circle',
+                    'active' => ['results*'],
+                    'can' => 'subjectresults.view',
+                ],
+                [
+                    'text' => 'Result Template',
+                    'route' => 'result-templates.index',
+                    'icon' => 'bi bi-circle',
+                    'active' => ['result-templates*'],
+                    'can' => 'resulttemplates.view',
+                ],
+            ],
         ],
+
         ['header' => 'ADMINISTRATION'],
         [
             'text' => 'Administration',

@@ -317,10 +317,15 @@ class SemesterResultService
                     'r.subjectid',
                     'r.attempt',
                     'r.subject_credit',
+                    'r.entry_mode',
                     'i.grade',
                     'i.grade_point',
                     'i.is_pass',
-                    'i.is_absent'
+                    'i.is_absent',
+                    'i.internal',
+                    'i.external',
+                    'i.external_absent',
+                    'i.total'
                 ]);
 
             // ordered by attempt: the last row of a student + subject is the latest one

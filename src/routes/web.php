@@ -27,7 +27,7 @@ use App\Http\Controllers\Student\StudentImportController;
 use App\Http\Controllers\Student\StudentListController;
 use App\Http\Controllers\Subject\OptionalSubjectStudentController;
 use App\Http\Controllers\Result\ResultController;
-
+use App\Http\Controllers\Result\ResultTemplateController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -116,5 +116,9 @@ use Illuminate\Support\Facades\Route;
         Route::put('{subjectResult}', 'update')->name('update');
         Route::delete('{subjectResult}', 'destroy')->name('destroy');
         Route::get('semester/{semesterExam}/download', 'download')->name('download');
+        Route::get('semester/{semesterExam}/gradesheet', 'gradesheet')->name('gradesheet');
     });
+
+    Route::get('result-templates/{resultTemplate}/preview', [ResultTemplateController::class, 'preview'])->name('result-templates.preview');
+    Route::resource('result-templates', ResultTemplateController::class)->except('show');
 });
