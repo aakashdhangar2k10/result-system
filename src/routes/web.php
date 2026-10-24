@@ -32,27 +32,31 @@ use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix('administration')->group(function () {
+
+    Route::redirect('/', '/dashboard');
+
+    Route::middleware('guest')->group(function () {
+    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'login']);
+    });
+
+    Route::middleware(['auth', 'active'])->group(function () {
+    Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard.index');
+    
+    Route::prefix('administration')->group(function () {
     Route::resource('users', UserController::class)->names('admin-users');
     Route::resource('roles', RoleController::class)->except('show')->names('admin-roles');
     Route::resource('groups', GroupController::class)->except('show')->names('admin-groups');
-});
+    });
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [WebAuthController::class, 'login']);
-});
-
-Route::middleware(['auth', 'active'])->group(function () {
-    Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', DashboardController::class)->name('dashboard.index');
     Route::resource('departments', DepartmentController::class)->except('show');
     Route::resource('grades', GradeController::class)->except('show');
     Route::resource('divisions', DivisionController::class)->except('show');
     Route::resource('courses', CourseController::class)->except('show');
     Route::resource('branches', BranchController::class)->except('show');
     Route::resource('batches', BatchController::class)->except('show');
-
+    
     // configuration
     Route::prefix('configuration')->group(function () {
         Route::resource('course-types', CourseTypeController::class)->except('show');
