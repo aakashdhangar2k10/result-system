@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ResultTemplateController extends Controller implements HasMiddleware
 {
-    public function __construct(private GradeSheetService $sheets)
-    {
-    }
+    public function __construct(private GradeSheetService $sheets) {}
 
     public static function middleware(): array
     {
@@ -34,7 +32,7 @@ class ResultTemplateController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $templates = ResultTemplate::with('course')
-            ->when($request->q, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when($request->q, fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
@@ -128,8 +126,8 @@ class ResultTemplateController extends Controller implements HasMiddleware
         $data['courseid'] = $request->filled('courseid') ? (int) $request->courseid : null;
 
         $data['footer_items'] = array_values(array_filter(
-            array_map(fn ($label) => trim((string) $label), (array) $request->input('footer_items', [])),
-            fn ($label) => $label !== ''
+            array_map(fn($label) => trim((string) $label), (array) $request->input('footer_items', [])),
+            fn($label) => $label !== ''
         ));
 
         // the default template stays the default until another one takes over
@@ -137,9 +135,16 @@ class ResultTemplateController extends Controller implements HasMiddleware
             $data['is_default'] = true;
         }
 
+        // automatic mode forgets the typed numbers
         if (($data['margin_mode'] ?? 'auto') !== 'custom') {
             foreach (['top', 'right', 'bottom', 'left'] as $side) {
                 $data["margin_{$side}"] = null;
+            }
+        }
+
+        if (($data['spacing_mode'] ?? 'auto') !== 'custom') {
+            foreach (ResultTemplate::SPACING_FIELDS as $name) {
+                $data["space_{$name}"] = null;
             }
         }
 

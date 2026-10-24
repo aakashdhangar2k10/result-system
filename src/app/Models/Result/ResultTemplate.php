@@ -14,12 +14,27 @@ class ResultTemplate extends Model
     public const SIGNATURES = ['Prepared by', 'Co-ordinator', 'Head', 'Head/Director', 'Dean', 'Controller of Examinations'];
     public const MAX_SIGNATURES = 6;
 
-    // margins in millimetres: top, right, bottom, left
+    public const ALIGN = ['left' => 'Left', 'center' => 'Centre', 'right' => 'Right'];
+    public const SIDES = ['left' => 'Left', 'right' => 'Right'];
+
+    // page margins in millimetres: top, right, bottom, left
     public const AUTO_MARGINS = [14, 12, 14, 12];
+
+    // spacing in millimetres, used when the mode is "auto" (and for any empty box in "custom")
+    public const AUTO_SPACING = [
+        'header_top' => 0,       // above the header
+        'header_side' => 0,      // left and right inset of the header
+        'header_lines' => 1,     // between two header lines
+        'after_header' => 4,     // between the header and the grade sheet
+        'sections' => 4,         // between the tables
+        'footer' => 12,          // above the signatures
+    ];
+
+    public const SPACING_FIELDS = ['header_top', 'header_side', 'header_lines', 'after_header', 'sections', 'footer'];
 
     public const FLAGS = [
         'is_default', 'show_header', 'show_logo', 'show_department', 'show_header_line', 'show_photo',
-        'show_institute_block', 'show_marks', 'show_semester_summary', 'show_legend',
+        'show_duration', 'show_institute_block', 'show_marks', 'show_semester_summary', 'show_legend',
         'show_declared_date', 'show_footer', 'active',
     ];
 
@@ -27,12 +42,16 @@ class ResultTemplate extends Model
     protected $primaryKey = 'templateid';
 
     protected $fillable = [
-        'name', 'courseid', 'is_default', 'title', 'programme_label',
+        'name', 'courseid', 'is_default', 'title', 'programme_label', 'show_duration',
         'show_header', 'show_logo', 'logo', 'university_name', 'header_lines_top', 'show_department',
         'header_lines_bottom', 'show_header_line', 'show_photo',
-        'show_institute_block', 'institute_address', 'show_marks', 'show_semester_summary',
-        'show_legend', 'show_declared_date', 'show_footer', 'footer_items',
+        'show_institute_block', 'institute_label', 'address_label', 'institute_address',
+        'show_marks', 'show_semester_summary', 'show_legend', 'show_declared_date',
+        'show_footer', 'footer_items',
+        'header_align', 'title_align', 'institute_align', 'programme_align', 'logo_position', 'photo_position',
         'margin_mode', 'margin_top', 'margin_right', 'margin_bottom', 'margin_left',
+        'spacing_mode', 'space_header_top', 'space_header_side', 'space_header_lines',
+        'space_after_header', 'space_sections', 'space_footer',
         'active', 'is_delete',
     ];
 
@@ -45,6 +64,7 @@ class ResultTemplate extends Model
             'show_department' => 'boolean',
             'show_header_line' => 'boolean',
             'show_photo' => 'boolean',
+            'show_duration' => 'boolean',
             'show_institute_block' => 'boolean',
             'show_marks' => 'boolean',
             'show_semester_summary' => 'boolean',
@@ -52,6 +72,12 @@ class ResultTemplate extends Model
             'show_declared_date' => 'boolean',
             'show_footer' => 'boolean',
             'footer_items' => 'array',
+            'space_header_top' => 'decimal:1',
+            'space_header_side' => 'decimal:1',
+            'space_header_lines' => 'decimal:1',
+            'space_after_header' => 'decimal:1',
+            'space_sections' => 'decimal:1',
+            'space_footer' => 'decimal:1',
             'active' => 'boolean',
             'is_delete' => 'boolean',
         ];
@@ -82,6 +108,7 @@ class ResultTemplate extends Model
             'name' => '',
             'title' => 'GRADE-SHEET',
             'programme_label' => 'Name of the Programme:',
+            'show_duration' => true,
             'show_header' => true,
             'show_logo' => true,
             'university_name' => (string) config('result.university'),
@@ -91,13 +118,22 @@ class ResultTemplate extends Model
             'show_header_line' => true,
             'show_photo' => false,
             'show_institute_block' => false,
+            'institute_label' => 'Name of the Institute / School of Studies :',
+            'address_label' => 'Address of Institute / School of Studies :',
             'show_marks' => false,
             'show_semester_summary' => true,
             'show_legend' => true,
             'show_declared_date' => true,
             'show_footer' => true,
             'footer_items' => ['Prepared by', 'Co-ordinator', 'Head'],
+            'header_align' => 'center',
+            'title_align' => 'center',
+            'institute_align' => 'left',
+            'programme_align' => 'center',
+            'logo_position' => 'left',
+            'photo_position' => 'right',
             'margin_mode' => 'auto',
+            'spacing_mode' => 'auto',
             'active' => true,
         ]);
     }
@@ -123,6 +159,24 @@ class ResultTemplate extends Model
             (int) ($this->margin_bottom ?? self::AUTO_MARGINS[2]),
             (int) ($this->margin_left ?? self::AUTO_MARGINS[3]),
         ];
+    }
+
+    // the six spacing values in mm; an empty custom box keeps its automatic value
+    public function spacingMm(): array
+    {
+        $values = self::AUTO_SPACING;
+
+        if ($this->spacing_mode === 'custom') {
+            foreach (self::SPACING_FIELDS as $name) {
+                $value = $this->{'space_' . $name};
+
+                if ($value !== null) {
+                    $values[$name] = (float) $value;
+                }
+            }
+        }
+
+        return $values;
     }
 
     protected function logoUrl(): Attribute

@@ -19,9 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class GradeSheetService
 {
-    public function __construct(private SemesterResultService $sgpa)
-    {
-    }
+    public function __construct(private SemesterResultService $sgpa) {}
 
     /** The template to print with: the one chosen, else the course's own, else the default, else the built-in layout. */
     public function template(SemesterExam $exam, ?int $templateId = null): ResultTemplate
@@ -76,12 +74,11 @@ class GradeSheetService
         $currentNumber = Term::number($exam->term?->roman);
 
         $terms = SemesterList::get()
-            ->filter(fn ($t) => ($n = Term::number($t->roman)) >= 1 && $n <= (int) $course?->total_terms)
-            ->sortBy(fn ($t) => Term::number($t->roman))
+            ->filter(fn($t) => ($n = Term::number($t->roman)) >= 1 && $n <= (int) $course?->total_terms)
+            ->sortBy(fn($t) => Term::number($t->roman))
             ->values();
 
         $isYear = $course?->structure_type === 'year';
-        $years = $isYear ? (int) $course->total_terms : (int) ceil(((int) $course?->total_terms) / 2);
 
         $sheets = [];
 
@@ -125,7 +122,7 @@ class GradeSheetService
                 $found = null;
 
                 if ($number === $currentNumber) {
-                    $found = $mine->first(fn ($r) => (int) $r->term_exam === (int) $exam->semesterexamid);
+                    $found = $mine->first(fn($r) => (int) $r->term_exam === (int) $exam->semesterexamid);
                 } elseif ($number < $currentNumber) {
                     $found = $mine->where('term_semid', $term->semid)->sortByDesc('term_attempt')->first();
                 }
@@ -141,7 +138,7 @@ class GradeSheetService
 
             $sheets[] = [
                 'department' => (string) $course?->department?->fullname,
-                'programme' => $course?->fullname . '- ' . $years . ' ' . ($years === 1 ? 'Year' : 'Years'),
+                'programme' => $this->programme($template, $course),
                 'batch' => $batch?->startyear . '-' . substr((string) $batch?->endyear, -2)
                     . ($batch?->branch ? ' (' . $batch->branch->shortname . ')' : ''),
                 'examination' => (string) $exam->exammonth?->format('F-Y'),
@@ -169,10 +166,16 @@ class GradeSheetService
             'show_photo' => $showPhoto,
             'logo' => $template->show_logo ? $this->dataUri($template->logo) : null,
             'margins' => $template->marginsMm(),
+            'spacing' => $template->spacingMm(),
             'sheets' => $sheets,
             'file' => Str::slug(implode(' ', array_filter([
-                'gradesheet', $course?->shortname, $batch?->label, Term::base($exam->term?->name),
-                'attempt', $exam->attempt, count($sheets) === 1 ? $sheets[0]['roll'] : null,
+                'gradesheet',
+                $course?->shortname,
+                $batch?->label,
+                Term::base($exam->term?->name),
+                'attempt',
+                $exam->attempt,
+                count($sheets) === 1 ? $sheets[0]['roll'] : null,
             ]))) ?: 'gradesheet',
         ];
     }
@@ -204,6 +207,21 @@ class GradeSheetService
     }
 
     // ------------------------------------------------------------------ helpers
+    // "M.B.A. (Foreign Trade)- 2 Years": the length is added only when the course name does not already carry it
+    private function programme(ResultTemplate $template, $course): string
+    {
+        $name = trim((string) $course?->fullname);
+
+        if (! $template->show_duration || preg_match('/\b\d+\s*(?:years?|yrs?|semesters?|sem)\b/i', $name)) {
+            return $name;
+        }
+
+        $years = $course?->structure_type === 'year'
+            ? (int) $course->total_terms
+            : (int) ceil(((int) $course?->total_terms) / 2);
+
+        return $years < 1 ? $name : $name . '- ' . $years . ' ' . ($years === 1 ? 'Year' : 'Years');
+    }
 
     private function order(array $students, $summaries, string $sort, string $dir): array
     {
