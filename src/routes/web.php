@@ -28,6 +28,7 @@ use App\Http\Controllers\Student\StudentListController;
 use App\Http\Controllers\Subject\OptionalSubjectStudentController;
 use App\Http\Controllers\Result\ResultController;
 use App\Http\Controllers\Result\ResultTemplateController;
+use App\Http\Controllers\Result\CourseFinalController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -121,4 +122,9 @@ use Illuminate\Support\Facades\Route;
 
     Route::get('result-templates/{resultTemplate}/preview', [ResultTemplateController::class, 'preview'])->name('result-templates.preview');
     Route::resource('result-templates', ResultTemplateController::class)->except('show');
+
+    Route::post('result-templates/{resultTemplate}/duplicate', [ResultTemplateController::class, 'duplicate'])->name('result-templates.duplicate');
+    Route::get('result-finals', [CourseFinalController::class, 'index'])->name('result-finals.index');
+    Route::get('result-finals/{course}/edit', [CourseFinalController::class, 'edit'])->name('result-finals.edit');
+    Route::put('result-finals/{course}', [CourseFinalController::class, 'update'])->name('result-finals.update');
 });

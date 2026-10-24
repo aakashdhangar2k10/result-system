@@ -6,4 +6,7 @@ return [
 
     // the three signature lines at the bottom of the sheet
     'signatures' => ['Prepared by', 'Coordinator', 'Head'],
+
+    // Equivalent Percentage = CGPA x this number
+    'cgpa_multiplier' => 10,
 ];

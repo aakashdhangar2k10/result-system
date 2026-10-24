@@ -8,12 +8,13 @@
     $columns = $marks ? 9 : 6;
     $footer = $t->show_footer ? array_values(array_filter((array) $t->footer_items)) : [];
     $align = fn ($value) => in_array($value, ['left', 'center', 'right'], true) ? $value : 'left';
+    $multiplier = rtrim(rtrim(number_format((float) config('result.cgpa_multiplier', 10), 2, '.', ''), '0'), '.');
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{{ $t->title }}</title>
+    <title>{{ $t->title ?: 'Grade sheet' }}</title>
     <style>
         @page { margin: {{ $m[0] }}mm {{ $m[1] }}mm {{ $m[2] }}mm {{ $m[3] }}mm; }
         body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #000; }
@@ -30,6 +31,7 @@
         .prog { font-weight: bold; font-size: 10pt; margin: 0 0 {{ $sp['sections'] }}mm; }
         .gap { margin-top: {{ $sp['sections'] }}mm; }
         .note { margin: 1.5mm 0 0; }
+        .small { font-size: 8pt; }
         table.sign { margin-top: {{ $sp['footer'] }}mm; }
         table.sign td { border: none; font-weight: bold; padding: 0; }
         img.logo { width: 78px; }
@@ -101,7 +103,9 @@
         {{-- the gap between the header and the grade sheet --}}
         <div style="padding-top: {{ $showHeader ? $sp['after_header'] : 0 }}mm">
 
-            <div class="title" style="text-align: {{ $align($t->title_align) }}">{{ $t->title }}</div>
+            @if ($t->title)
+                <div class="title" style="text-align: {{ $align($t->title_align) }}">{{ $t->title }}</div>
+            @endif
 
             @if ($t->show_institute_block)
                 <div class="inst" style="text-align: {{ $align($t->institute_align) }}">
@@ -112,13 +116,13 @@
                 </div>
             @endif
 
-            <div class="prog" style="text-align: {{ $align($t->programme_align) }}">{{ $t->programme_label }} {{ $sheet['programme'] }}</div>
+            <div class="prog" style="text-align: {{ $align($t->programme_align) }}">{{ trim($t->programme_label . ' ' . $sheet['programme']) }}</div>
 
             {{-- student --}}
             <table class="grid">
                 <tr>
                     <td class="left" style="width:50%"><span class="strong">Batch:</span> {{ $sheet['batch'] }}</td>
-                    <td class="left"><span class="strong">Examination:</span> {{ $sheet['examination'] }}</td>
+                    <td class="left"><span class="strong">{{ $pack['exam_label'] }}:</span> {{ $sheet['examination'] }}</td>
                 </tr>
                 <tr>
                     <td class="left"><span class="strong">Name of the Student:</span> {{ $sheet['name'] }}</td>
@@ -160,7 +164,7 @@
                             <td>{{ $row['marks']['total'] ?? '-' }}</td>
                         @endif
                         <td>{{ $row['credit'] }}</td>
-                        <td>{{ $row['grade'] }}</td>
+                        <td>{{ $row['grade'] }}{{ $row['repeat'] ? '*' : '' }}</td>
                         <td>{{ $row['point'] }}</td>
                         <td>{{ $row['points'] }}</td>
                     </tr>
@@ -179,6 +183,10 @@
                 </tbody>
             </table>
 
+            @if ($t->show_repeat_note && collect($sheet['rows'])->contains('repeat', true))
+                <p class="note strong small">* Grade in Repeat Examination</p>
+            @endif
+
             {{-- semester-wise details --}}
             @if ($t->show_semester_summary && $sheet['terms'])
                 <table class="grid gap">
@@ -188,7 +196,7 @@
                         @foreach ($sheet['terms'] as $cell)<th>{{ $cell['label'] }}</th>@endforeach
                     </tr>
                     <tr>
-                        <th>Credit</th>
+                        <th>CREDITS</th>
                         @foreach ($sheet['terms'] as $cell)<td>{{ $cell['credit'] }}</td>@endforeach
                     </tr>
                     <tr>
@@ -201,13 +209,41 @@
                     </tr>
                     <tr>
                         <th>RESULT</th>
-                        @foreach ($sheet['terms'] as $cell)<td>{{ $cell['result'] }}</td>@endforeach
+                        @foreach ($sheet['terms'] as $cell)<td class="strong">{{ $cell['result'] }}</td>@endforeach
                     </tr>
                 </table>
             @endif
 
             @if ($t->show_legend)
                 <p class="note"><span class="strong">SGPA:</span> Semester Grade Point Average</p>
+            @endif
+
+            {{-- final result: printed on the sheet of a final semester --}}
+            @if ($sheet['final'])
+                @php $final = $sheet['final']; @endphp
+                <table class="grid gap">
+                    <tr>
+                        <th colspan="4">FINAL RESULT{{ $final['degree'] ? ' (' . $final['degree'] . ')' : '' }}: {{ $final['label'] }}</th>
+                    </tr>
+                    <tr>
+                        <th style="width:22%">TOTAL CREDITS</th>
+                        <th style="width:14%">CGPA</th>
+                        <th>EQUIVALENT PERCENTAGE</th>
+                        <th style="width:28%">DIVISION</th>
+                    </tr>
+                    <tr class="strong">
+                        <td>{{ $final['credits'] }}</td>
+                        <td>{{ $final['cgpa'] }}</td>
+                        <td>{{ $final['percentage'] }}</td>
+                        <td>{{ $final['division'] }}</td>
+                    </tr>
+                </table>
+                <table class="plain" style="margin-top: 1mm">
+                    <tr>
+                        <td class="strong small left">Equivalent Percentage= CGPA*{{ $multiplier }}</td>
+                        <td class="strong small" style="text-align: right">CGPA: Cumulative Grade Point Average</td>
+                    </tr>
+                </table>
             @endif
 
             @if ($t->show_declared_date && $sheet['declared'])

@@ -353,6 +353,7 @@ class ResultController extends Controller implements HasMiddleware
     }
 
     // grade sheets: one page per student (or one student), as a PDF in the browser
+    // grade sheets: one page per student (or one student), as a PDF in the browser
     public function gradesheet(Request $request, SemesterExam $semesterExam)
     {
         $options = $request->validate([
@@ -372,6 +373,15 @@ class ResultController extends Controller implements HasMiddleware
         $pack = $this->sheets->pack($semesterExam, $template, $options);
 
         abort_if(empty($pack['sheets']), 404, 'No student found for this grade sheet.');
+
+        // a real printout locks the template: only an administrator can change it afterwards
+        if ($template->exists) {
+            $template->usages()->create([
+                'semesterexamid' => $semesterExam->semesterexamid,
+                'sheets' => count($pack['sheets']),
+                'user_id' => $request->user()->id,
+            ]);
+        }
 
         return $this->sheets->pdf($pack);
     }

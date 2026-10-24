@@ -4,6 +4,19 @@
     $spacingMode = old('spacing_mode', $template->spacing_mode ?? 'auto');
     $flag = fn (string $name, $default = false) => (bool) old($name, $template->{$name} ?? $default);
 
+    // the rows of "Where this template is used", restored after a validation error
+    $assignRows = array_values(array_map(fn ($row) => [
+        'courseid' => (int) ($row['courseid'] ?? 0),
+        'batchid' => ($row['batchid'] ?? '') === '' || $row['batchid'] === null ? '' : (int) $row['batchid'],
+    ], (array) old('assignments', $assignmentRows)));
+
+    $courseOptions = $courses->map(fn ($c) => ['id' => $c->courseid, 'text' => $c->shortname . ' – ' . $c->fullname])->values()->all();
+    $batchOptions = $batches->map(fn ($b) => [
+        'id' => $b->batchid,
+        'course' => $b->courseid,
+        'text' => $b->label . ($b->branch ? ' – ' . $b->branch->shortname : ''),
+    ])->values()->all();
+
     $spacing = [
         'header_top' => ['Space above the header', 'Extra space over the header, on top of the page margin.', 60],
         'header_side' => ['Header left / right inset', 'Pulls the header away from both side margins.', 60],
@@ -21,22 +34,6 @@
         <input type="text" name="name" value="{{ old('name', $template->name) }}"
                class="form-control @error('name') is-invalid @enderror" placeholder="Grade sheet, School of Commerce" required>
         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-    </div>
-</div>
-
-<div class="row mb-3">
-    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Use for course</label>
-    <div class="col-sm-9">
-        <select name="courseid" class="form-select @error('courseid') is-invalid @enderror">
-            <option value="">All courses</option>
-            @foreach ($courses as $course)
-                <option value="{{ $course->courseid }}" @selected(old('courseid', $template->courseid) == $course->courseid)>
-                    {{ $course->shortname }} – {{ $course->fullname }}
-                </option>
-            @endforeach
-        </select>
-        @error('courseid') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        <div class="form-text">A course's own template is used first; every other course uses the default template.</div>
     </div>
 </div>
 
@@ -59,6 +56,32 @@
     </div>
 </div>
 
+{{-- where it is used --}}
+<h5 class="mt-4 mb-3 border-bottom pb-2">Where this template is used</h5>
+
+<div class="row mb-3">
+    <div class="col-sm-9 offset-sm-3">
+        <div id="assignList"></div>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="addAssign">
+            <i class="bi bi-plus-lg"></i> Add course / session
+        </button>
+
+        @foreach ($errors->keys() as $key)
+            @if (str_starts_with($key, 'assignments'))
+                @foreach ($errors->get($key) as $message)
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @endforeach
+            @endif
+        @endforeach
+
+        <div class="form-text">
+            One template can serve many courses and sessions. When a sheet is printed, the template of its
+            <strong>course and session</strong> is used first, then the template of the <strong>course (all sessions)</strong>,
+            then the <strong>default</strong> template. A course and session can belong to one template only.
+        </div>
+    </div>
+</div>
+
 {{-- sheet --}}
 <h5 class="mt-4 mb-3 border-bottom pb-2">Sheet</h5>
 
@@ -66,8 +89,9 @@
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Title</label>
     <div class="col-sm-5">
         <input type="text" name="title" value="{{ old('title', $template->title) }}"
-               class="form-control @error('title') is-invalid @enderror" placeholder="GRADE-SHEET" required>
+               class="form-control @error('title') is-invalid @enderror" placeholder="GRADE-SHEET">
         @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">Leave empty to print no title.</div>
     </div>
     <div class="col-sm-2">@include('result_template._align', ['name' => 'title_align'])</div>
 </div>
@@ -76,10 +100,30 @@
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Programme line</label>
     <div class="col-sm-5">
         <input type="text" name="programme_label" value="{{ old('programme_label', $template->programme_label) }}"
-               class="form-control @error('programme_label') is-invalid @enderror" placeholder="Name of the Programme:" required>
+               class="form-control @error('programme_label') is-invalid @enderror" placeholder="Name of the Programme:">
         @error('programme_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">Leave empty to print only the course name.</div>
     </div>
     <div class="col-sm-2">@include('result_template._align', ['name' => 'programme_align'])</div>
+</div>
+
+<div class="row mb-3">
+    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Exam label</label>
+    <div class="col-sm-3">
+        <input type="text" name="exam_label" value="{{ old('exam_label', $template->exam_label) }}"
+               class="form-control @error('exam_label') is-invalid @enderror" placeholder="Examination" required>
+        @error('exam_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">For example "Examination: November-2023" or "Session: June-2025".</div>
+    </div>
+    <label class="col-sm-2 col-form-label fw-bold text-sm-end">Date format</label>
+    <div class="col-sm-3">
+        <select name="date_format" class="form-select @error('date_format') is-invalid @enderror">
+            @foreach (\App\Models\Result\ResultTemplate::DATE_FORMATS as $value => $example)
+                <option value="{{ $value }}" @selected(old('date_format', $template->date_format) === $value)>{{ $example }}</option>
+            @endforeach
+        </select>
+        @error('date_format') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
 </div>
 
 <div class="row mb-3">
@@ -94,16 +138,21 @@
         @foreach ([
             'show_semester_summary' => 'Semester-wise details table (I, II, III, IV)',
             'show_legend' => 'Line "SGPA: Semester Grade Point Average"',
+            'show_final_result' => 'Final result block (total credits, CGPA, equivalent percentage, division) on the sheet of a final semester',
+            'show_repeat_note' => 'Mark grades of repeat examinations with * and print "* Grade in Repeat Examination"',
             'show_declared_date' => 'Date of Result',
             'show_marks' => 'Marks columns (Internal, External, Total)',
         ] as $name => $label)
             <div class="form-check form-switch">
                 <input type="hidden" name="{{ $name }}" value="0">
                 <input class="form-check-input" type="checkbox" role="switch" name="{{ $name }}" id="{{ $name }}" value="1"
-                       @checked($flag($name, in_array($name, ['show_semester_summary', 'show_legend', 'show_declared_date'])))>
+                       @checked($flag($name, in_array($name, ['show_semester_summary', 'show_legend', 'show_final_result', 'show_repeat_note', 'show_declared_date'])))>
                 <label class="form-check-label" for="{{ $name }}">{{ $label }}</label>
             </div>
         @endforeach
+        <div class="form-text">
+            The semesters where a final result prints are set under <strong>Result → Final Result Points</strong>.
+        </div>
     </div>
 </div>
 
@@ -376,6 +425,74 @@
     (function () {
         var max = {{ \App\Models\Result\ResultTemplate::MAX_SIGNATURES }};
         var list = document.getElementById('footerList');
+
+        // ---- where the template is used
+        var courses = @json($courseOptions);
+        var batches = @json($batchOptions);
+        var assigned = @json($assignRows);
+        var assignList = document.getElementById('assignList');
+        var counter = 0;
+
+        function option(value, text, selected) {
+            var o = document.createElement('option');
+            o.value = value;
+            o.textContent = text;
+            if (selected) o.selected = true;
+            return o;
+        }
+
+        // the sessions of the chosen course
+        function fillBatches(select, courseId, selected) {
+            select.innerHTML = '';
+            select.appendChild(option('', 'All sessions', selected === '' || selected === null));
+
+            batches.filter(function (b) { return String(b.course) === String(courseId); })
+                .forEach(function (b) { select.appendChild(option(b.id, b.text, String(b.id) === String(selected))); });
+        }
+
+        function addAssign(courseId, batchId) {
+            var index = counter++;
+
+            var row = document.createElement('div');
+            row.className = 'row g-2 mb-2 align-items-center';
+
+            var colCourse = document.createElement('div');
+            colCourse.className = 'col-md-6';
+            var course = document.createElement('select');
+            course.name = 'assignments[' + index + '][courseid]';
+            course.className = 'form-select form-select-sm';
+            course.appendChild(option('', 'Select course', !courseId));
+            courses.forEach(function (c) { course.appendChild(option(c.id, c.text, String(c.id) === String(courseId))); });
+            colCourse.appendChild(course);
+
+            var colBatch = document.createElement('div');
+            colBatch.className = 'col-md-4';
+            var batch = document.createElement('select');
+            batch.name = 'assignments[' + index + '][batchid]';
+            batch.className = 'form-select form-select-sm';
+            fillBatches(batch, courseId, batchId === undefined ? '' : batchId);
+            colBatch.appendChild(batch);
+
+            course.addEventListener('change', function () { fillBatches(batch, course.value, ''); });
+
+            var colRemove = document.createElement('div');
+            colRemove.className = 'col-md-1';
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn btn-sm btn-outline-danger';
+            remove.innerHTML = '<i class="bi bi-x-lg"></i>';
+            remove.title = 'Remove';
+            remove.addEventListener('click', function () { row.remove(); });
+            colRemove.appendChild(remove);
+
+            row.appendChild(colCourse);
+            row.appendChild(colBatch);
+            row.appendChild(colRemove);
+            assignList.appendChild(row);
+        }
+
+        assigned.forEach(function (row) { addAssign(row.courseid || '', row.batchid); });
+        document.getElementById('addAssign').addEventListener('click', function () { addAssign('', ''); });
 
         // a switched-off area is dimmed (not disabled), so nothing typed in it is lost
         function dim(switchId, boxId) {

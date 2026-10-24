@@ -9,8 +9,21 @@
 @section('content')
     @include('partials.flash-error')
 
+    @if ($used > 0)
+        <div class="alert alert-warning">
+            <i class="bi bi-lock-fill"></i>
+            <strong>This template was used to print {{ $used }} grade sheet(s)</strong>
+            @if ($lastUsed) (last on {{ \Illuminate\Support\Carbon::parse($lastUsed)->format('d M Y, h:i A') }}) @endif.
+            Only an administrator can change it. Sheets that are reprinted later will use the new layout,
+            so for a different layout use <em>Duplicate</em> on the list instead.
+        </div>
+    @endif
+
     <div class="card card-info card-outline">
-        <form action="{{ route('result-templates.update', $template) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('result-templates.update', $template) }}" method="POST" enctype="multipart/form-data"
+              @if ($used > 0)
+                  onsubmit="return confirm('This template was used for {{ $used }} printed sheet(s). Your changes also apply when those sheets are reprinted. Save anyway?')"
+              @endif>
             @csrf
             @method('PUT')
             <div class="card-body">

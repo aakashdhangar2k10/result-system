@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Result;
 
+use App\Models\Batch\Batch;
 use App\Models\Result\ResultTemplate;
+use App\Models\Result\ResultTemplateAssignment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -26,14 +28,18 @@ class ResultTemplateRequest extends FormRequest
                 'required', 'string', 'max:100',
                 Rule::unique('mark_result_template', 'name')->where('is_delete', false)->ignore($id, 'templateid'),
             ],
-            'courseid' => [
-                'nullable',
-                Rule::exists('mark_course', 'courseid')->where('is_delete', false),
-                // one template per course
-                Rule::unique('mark_result_template', 'courseid')->where('is_delete', false)->ignore($id, 'templateid'),
-            ],
-            'title' => ['required', 'string', 'max:60'],
-            'programme_label' => ['required', 'string', 'max:80'],
+
+            // where the template is used: course + session (or every session)
+            'assignments' => ['nullable', 'array', 'max:40'],
+            'assignments.*.courseid' => ['required', Rule::exists('mark_course', 'courseid')->where('is_delete', false)],
+            'assignments.*.batchid' => ['nullable', Rule::exists('mark_batch', 'batchid')->where('is_delete', false)],
+
+            // both can be empty: the sheet then starts with the course name
+            'title' => ['nullable', 'string', 'max:60'],
+            'programme_label' => ['nullable', 'string', 'max:80'],
+            'exam_label' => ['required', 'string', 'max:30'],
+            'date_format' => ['required', Rule::in(array_keys(ResultTemplate::DATE_FORMATS))],
+
             'university_name' => ['nullable', 'string', 'max:150'],
             'header_lines_top' => ['nullable', 'string', 'max:500'],
             'header_lines_bottom' => ['nullable', 'string', 'max:500'],
@@ -71,9 +77,53 @@ class ResultTemplateRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            $id = $this->route('result_template')?->templateid;
+
             foreach (['header_lines_top' => 'above', 'header_lines_bottom' => 'below'] as $field => $where) {
                 if (count(ResultTemplate::lines($this->input($field))) > 6) {
                     $validator->errors()->add($field, "Use at most 6 lines {$where} the department.");
+                }
+            }
+
+            // each course + session belongs to one template only
+            $seen = [];
+
+            foreach ((array) $this->input('assignments', []) as $i => $row) {
+                $course = (int) ($row['courseid'] ?? 0);
+                $batch = ($row['batchid'] ?? '') !== '' ? (int) $row['batchid'] : null;
+
+                if (! $course) {
+                    continue;
+                }
+
+                if ($batch && ! Batch::where('batchid', $batch)->where('courseid', $course)->exists()) {
+                    $validator->errors()->add("assignments.{$i}.batchid", 'A selected session does not belong to its course.');
+                    continue;
+                }
+
+                $key = $course . '-' . ($batch ?? 0);
+
+                if (isset($seen[$key])) {
+                    $validator->errors()->add("assignments.{$i}.courseid", 'The same course and session is listed twice.');
+                    continue;
+                }
+
+                $seen[$key] = true;
+
+                $owner = ResultTemplateAssignment::query()
+                    ->join('mark_result_template as t', 't.templateid', '=', 'mark_result_template_assignment.templateid')
+                    ->where('t.is_delete', false)
+                    ->where('mark_result_template_assignment.courseid', $course)
+                    ->when(
+                        $batch,
+                        fn ($q) => $q->where('mark_result_template_assignment.batchid', $batch),
+                        fn ($q) => $q->whereNull('mark_result_template_assignment.batchid')
+                    )
+                    ->when($id, fn ($q) => $q->where('t.templateid', '<>', $id))
+                    ->value('t.name');
+
+                if ($owner) {
+                    $validator->errors()->add("assignments.{$i}.courseid", "This course and session already belongs to the template '{$owner}'.");
                 }
             }
         });
@@ -83,13 +133,13 @@ class ResultTemplateRequest extends FormRequest
     {
         return [
             'name.unique' => 'A template with this name already exists.',
-            'courseid.unique' => 'This course already has its own template. Edit that one, or choose another course.',
             'logo.max' => 'The logo must not be larger than 1 MB.',
             'margin_top.required_if' => 'Enter the margin in mm.',
             'margin_right.required_if' => 'Enter the margin in mm.',
             'margin_bottom.required_if' => 'Enter the margin in mm.',
             'margin_left.required_if' => 'Enter the margin in mm.',
             'space_header_lines.between' => 'The gap between header lines can be 0 to 20 mm.',
+            'assignments.*.courseid.required' => 'Select a course in every row, or remove the row.',
         ];
     }
 }

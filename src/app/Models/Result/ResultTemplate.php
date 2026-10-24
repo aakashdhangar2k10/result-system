@@ -2,20 +2,27 @@
 
 namespace App\Models\Result;
 
-use App\Models\Course\Course;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ResultTemplate extends Model
 {
     // quick-add buttons in the footer editor
-    public const SIGNATURES = ['Prepared by', 'Co-ordinator', 'Head', 'Head/Director', 'Dean', 'Controller of Examinations'];
+    public const SIGNATURES = ['Prepared by', 'Co-ordinator', 'Head', 'Head/Director', 'Asst. Registrar(Exam.)', 'Dean', 'Controller of Examinations'];
     public const MAX_SIGNATURES = 6;
 
     public const ALIGN = ['left' => 'Left', 'center' => 'Centre', 'right' => 'Right'];
     public const SIDES = ['left' => 'Left', 'right' => 'Right'];
+
+    // the date printed in "Date of Result"
+    public const DATE_FORMATS = [
+        'j F, Y' => '18 June, 2025',
+        'd/m/Y' => '18/06/2025',
+        'd-m-Y' => '18-06-2025',
+        'd M Y' => '18 Jun 2025',
+    ];
 
     // page margins in millimetres: top, right, bottom, left
     public const AUTO_MARGINS = [14, 12, 14, 12];
@@ -35,18 +42,19 @@ class ResultTemplate extends Model
     public const FLAGS = [
         'is_default', 'show_header', 'show_logo', 'show_department', 'show_header_line', 'show_photo',
         'show_duration', 'show_institute_block', 'show_marks', 'show_semester_summary', 'show_legend',
-        'show_declared_date', 'show_footer', 'active',
+        'show_declared_date', 'show_repeat_note', 'show_final_result', 'show_footer', 'active',
     ];
 
     protected $table = 'mark_result_template';
     protected $primaryKey = 'templateid';
 
     protected $fillable = [
-        'name', 'courseid', 'is_default', 'title', 'programme_label', 'show_duration',
+        'name', 'is_default', 'title', 'programme_label', 'exam_label', 'date_format', 'show_duration',
         'show_header', 'show_logo', 'logo', 'university_name', 'header_lines_top', 'show_department',
         'header_lines_bottom', 'show_header_line', 'show_photo',
         'show_institute_block', 'institute_label', 'address_label', 'institute_address',
         'show_marks', 'show_semester_summary', 'show_legend', 'show_declared_date',
+        'show_repeat_note', 'show_final_result',
         'show_footer', 'footer_items',
         'header_align', 'title_align', 'institute_align', 'programme_align', 'logo_position', 'photo_position',
         'margin_mode', 'margin_top', 'margin_right', 'margin_bottom', 'margin_left',
@@ -70,6 +78,8 @@ class ResultTemplate extends Model
             'show_semester_summary' => 'boolean',
             'show_legend' => 'boolean',
             'show_declared_date' => 'boolean',
+            'show_repeat_note' => 'boolean',
+            'show_final_result' => 'boolean',
             'show_footer' => 'boolean',
             'footer_items' => 'array',
             'space_header_top' => 'decimal:1',
@@ -96,9 +106,14 @@ class ResultTemplate extends Model
         return 'templateid';
     }
 
-    public function course(): BelongsTo
+    public function assignments(): HasMany
     {
-        return $this->belongsTo(Course::class, 'courseid', 'courseid');
+        return $this->hasMany(ResultTemplateAssignment::class, 'templateid', 'templateid');
+    }
+
+    public function usages(): HasMany
+    {
+        return $this->hasMany(ResultTemplateUsage::class, 'templateid', 'templateid');
     }
 
     // Used when no template has been saved yet, and as the starting point of "Add template"
@@ -108,6 +123,8 @@ class ResultTemplate extends Model
             'name' => '',
             'title' => 'GRADE-SHEET',
             'programme_label' => 'Name of the Programme:',
+            'exam_label' => 'Examination',
+            'date_format' => 'j F, Y',
             'show_duration' => true,
             'show_header' => true,
             'show_logo' => true,
@@ -124,6 +141,8 @@ class ResultTemplate extends Model
             'show_semester_summary' => true,
             'show_legend' => true,
             'show_declared_date' => true,
+            'show_repeat_note' => true,
+            'show_final_result' => true,
             'show_footer' => true,
             'footer_items' => ['Prepared by', 'Co-ordinator', 'Head'],
             'header_align' => 'center',
@@ -189,5 +208,23 @@ class ResultTemplate extends Model
         return Attribute::get(fn () => $this->margin_mode === 'custom'
             ? implode(' / ', $this->marginsMm()) . ' mm'
             : 'Auto');
+    }
+
+    // "MBA (all sessions), BBA (2022–2025)"
+    protected function assignmentText(): Attribute
+    {
+        return Attribute::get(function () {
+            $rows = $this->assignments;
+
+            if ($rows->isEmpty()) {
+                return $this->is_default ? 'All other courses' : 'Not assigned';
+            }
+
+            $text = $rows
+                ->map(fn ($a) => ($a->course?->shortname ?? '—') . ' (' . ($a->batch?->label ?? 'all sessions') . ')')
+                ->implode(', ');
+
+            return $this->is_default ? $text . ' + all other courses' : $text;
+        });
     }
 }

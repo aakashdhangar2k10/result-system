@@ -36,6 +36,7 @@ return [
         'adminroles' => 'Administration: Roles',
         'admingroups' => 'Administration: Groups',
         'dashboard' => 'Dashboard',
+        'coursefinals' => 'Final Result Points',
     ],
 
     // permission suffix => column name

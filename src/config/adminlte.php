@@ -417,6 +417,13 @@ return [
                     'active' => ['result-templates*'],
                     'can' => 'resulttemplates.view',
                 ],
+                [
+                    'text' => 'Final Result Points',
+                    'route' => 'result-finals.index',
+                    'icon' => 'bi bi-circle',
+                    'active' => ['result-finals*'],
+                    'can' => 'coursefinals.view',
+                ],
             ],
         ],
 
