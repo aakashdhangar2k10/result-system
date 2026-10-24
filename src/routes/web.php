@@ -11,6 +11,8 @@ use App\Http\Controllers\Configuration\DivisionTypeController;
 use App\Http\Controllers\Configuration\SubjectTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DepartmentContextController;
+use App\Http\Controllers\StructureController;
 use App\Http\Controllers\Grade\GradeController;
 use App\Http\Controllers\Division\DivisionController;
 use App\Http\Controllers\Course\CourseController;
@@ -44,11 +46,14 @@ use Illuminate\Support\Facades\Route;
     Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard.index');
+    Route::post('department-context', [DepartmentContextController::class, 'update'])->name('department-context.update');
+    Route::get('structure', StructureController::class)->name('structure.index');
     
     Route::prefix('administration')->group(function () {
     Route::resource('users', UserController::class)->names('admin-users');
     Route::resource('roles', RoleController::class)->except('show')->names('admin-roles');
     Route::resource('groups', GroupController::class)->except('show')->names('admin-groups');
+    
     });
 
     Route::resource('departments', DepartmentController::class)->except('show');

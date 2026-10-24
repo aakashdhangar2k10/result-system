@@ -37,6 +37,7 @@ return [
         'admingroups' => 'Administration: Groups',
         'dashboard' => 'Dashboard',
         'coursefinals' => 'Final Result Points',
+        'structure' => 'Structure & Flow',
     ],
 
     // permission suffix => column name
