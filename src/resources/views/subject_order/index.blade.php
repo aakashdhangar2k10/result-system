@@ -14,7 +14,7 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('subject-orders.index') }}">
             <div class="card-body">
                 <div class="row justify-content-center">
@@ -41,7 +41,7 @@
                         </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end gap-2">
-                        <button class="btn btn-info text-white">Search</button>
+                        <button class="btn btn-primary">Search</button>
                         <a href="{{ route('subject-orders.index') }}" class="btn btn-light border">Reset</a>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
 
                 <div class="card-footer text-end d-none" id="orderActions">
                     <span class="text-muted me-3">Use the arrows to change the order, then save.</span>
-                    <button type="submit" class="btn btn-info text-white">Save Order</button>
+                    <button type="submit" class="btn btn-primary">Save Order</button>
                     <button type="button" id="cancelOrder" class="btn btn-danger">Cancel</button>
                 </div>
             </form>

@@ -9,7 +9,7 @@
 @section('content')
     @include('partials.flash-error')
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('admin-users.update', $user) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -17,7 +17,7 @@
                 @include('administration.users._form')
             </div>
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ route('admin-users.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

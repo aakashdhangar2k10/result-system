@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('students.update', $student) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -15,7 +15,7 @@
                 @include('student._form')
             </div>
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <button type="reset" class="btn btn-light border">Reset</button>
                 <a href="{{ route('students.index') }}" class="btn btn-danger">Cancel</a>
             </div>

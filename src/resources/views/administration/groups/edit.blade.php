@@ -9,7 +9,7 @@
 @section('content')
     @include('partials.flash-error')
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('admin-groups.update', $group) }}" method="POST">
             @csrf
             @method('PUT')
@@ -17,7 +17,7 @@
                 @include('administration.groups._form')
             </div>
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ route('admin-groups.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

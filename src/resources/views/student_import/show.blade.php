@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4"><strong>Course:</strong> {{ $import->course?->fullname ?? '—' }}</div>

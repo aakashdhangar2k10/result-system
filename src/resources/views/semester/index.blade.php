@@ -21,7 +21,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('course-semesters.index') }}">
             {{-- keep the current sorting when filtering/searching --}}
             <input type="hidden" name="sort" value="{{ request('sort') }}">
@@ -52,7 +52,7 @@
                         </select>
                     </div>
                     <div class="col-md-4 d-flex align-items-end gap-2">
-                        <button class="btn btn-info text-white">Search</button>
+                        <button class="btn btn-primary">Search</button>
                         <a href="{{ route('course-semesters.index') }}" class="btn btn-light border">Reset</a>
                     </div>
                 </div>

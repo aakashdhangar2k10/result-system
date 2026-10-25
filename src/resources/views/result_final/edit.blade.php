@@ -23,7 +23,7 @@
         $initial = array_values((array) old('finals', $rows));
     @endphp
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('result-finals.update', $course) }}" method="POST">
             @csrf
             @method('PUT')
@@ -53,7 +53,7 @@
             </div>
 
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Save</button>
+                <button type="submit" class="btn btn-primary">Save</button>
                 <a href="{{ route('result-finals.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

@@ -21,7 +21,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <div class="card-header">
             <form method="GET" class="row g-2">
                 <div class="col-md-4">

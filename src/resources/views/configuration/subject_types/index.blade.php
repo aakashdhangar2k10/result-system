@@ -23,7 +23,7 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('subject-types.index') }}">
             <input type="hidden" name="sort" value="{{ request('sort') }}">
             <input type="hidden" name="dir" value="{{ request('dir') }}">

@@ -23,7 +23,7 @@
 
         <div class="row">
             <div class="col-lg-7">
-                <div class="card card-info card-outline">
+                <div class="card card-primary card-outline">
                     <div class="card-header"><h3 class="card-title">Add Result</h3></div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -137,7 +137,7 @@
             </div>
 
             <div class="col-lg-5">
-                <div class="card card-info card-outline">
+                <div class="card card-primary card-outline">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="card-title mb-0">Subject Detail</h3>
                         <a href="{{ route('results.index') }}" class="btn btn-primary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        <div class="card card-info card-outline">
+        <div class="card card-primary card-outline">
             <div class="card-body" id="entryBox"></div>
             <div class="card-footer text-end">
                 <span id="calcMessage" class="me-3"></span>

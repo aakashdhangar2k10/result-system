@@ -23,7 +23,7 @@
     @php $colors = \App\Services\SemesterResultService::COLORS; @endphp
 
     {{-- filters --}}
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('results.index') }}">
             <div class="card-header">
                 <h3 class="card-title mb-0">Select criteria for view result</h3>
@@ -98,7 +98,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <button class="btn btn-info text-white">Search</button>
+                    <button class="btn btn-primary">Search</button>
                     <a href="{{ route('results.index') }}" class="btn btn-light border">Reset</a>
                 </div>
             </div>

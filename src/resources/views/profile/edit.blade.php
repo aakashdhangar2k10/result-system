@@ -95,7 +95,7 @@
         </div>
 
         {{-- name and email --}}
-        <div class="card card-info card-outline">
+        <div class="card card-primary card-outline">
             <div class="card-header">
                 <h3 class="card-title mb-0">Account</h3>
             </div>
@@ -136,7 +136,7 @@
                 </div>
 
                 <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-info text-white">Update</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
                 </div>
             </form>
         </div>

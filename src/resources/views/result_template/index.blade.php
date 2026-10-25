@@ -12,7 +12,7 @@
                 </a>
             @endcan
             @can('resulttemplates.create')
-                <a href="{{ route('result-templates.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
+                <a href="{{ route('result-templates.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Template</a>
             @endcan
         </div>
     </div>
@@ -25,7 +25,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <div class="card-body p-0 table-responsive">
             <table class="table table-striped align-middle mb-0">
                 <thead>

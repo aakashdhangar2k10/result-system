@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('optional-subject-students.store') }}" method="POST">
             @csrf
             <div class="card-body">
@@ -105,7 +105,7 @@
             </div>
 
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Submit</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
                 <button type="reset" class="btn btn-light border">Reset</button>
                 <a href="{{ route('optional-subject-students.index') }}" class="btn btn-danger">Cancel</a>
             </div>

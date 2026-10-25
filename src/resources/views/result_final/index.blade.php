@@ -18,7 +18,7 @@
         where a final point ends. A course with no point set gets one final result after its last semester.
     </div>
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <div class="card-body p-0 table-responsive">
             <table class="table table-striped align-middle mb-0">
                 <thead>

@@ -7,15 +7,15 @@
 @stop
 
 @section('content')
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form action="{{ route('division-types.store') }}" method="POST">
             @csrf
             <div class="card-body">
                 @include('configuration.division_types._form')
             </div>
-            <div class="card-footer">
+            <div class="card-footer text-end">
                 <button class="btn btn-primary">Save</button>
-                <a href="{{ route('division-types.index') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('division-types.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>
     </div>

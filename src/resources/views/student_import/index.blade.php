@@ -24,7 +24,7 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('student-imports.index') }}">
             <div class="card-body">
                 <div class="row mb-4">
@@ -60,7 +60,7 @@
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end gap-2">
-                        <button class="btn btn-info text-white">Search</button>
+                        <button class="btn btn-primary">Search</button>
                         <a href="{{ route('student-imports.index') }}" class="btn btn-light border">Reset</a>
                     </div>
                 </div>

@@ -21,7 +21,7 @@
         and the errors. The students are saved only after you confirm.
     </div>
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('student-imports.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="card-body">

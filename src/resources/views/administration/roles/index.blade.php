@@ -7,7 +7,7 @@
         <div class="col-sm-6"><h3 class="mb-0">Roles</h3></div>
         <div class="col-sm-6 text-end">
             @can('adminroles.create')
-                <a href="{{ route('admin-roles.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
+                <a href="{{ route('admin-roles.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Role</a>
             @endcan
         </div>
     </div>
@@ -20,7 +20,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('admin-roles.index') }}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">

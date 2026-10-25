@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('session-subjects.update', $sessionSubject) }}" method="POST">
             @csrf
             @method('PUT')
@@ -48,7 +48,7 @@
             </div>
 
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ route('session-subjects.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

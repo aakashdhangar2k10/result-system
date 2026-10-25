@@ -7,15 +7,15 @@
 @stop
 
 @section('content')
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form action="{{ route('departments.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="card-body">
                 @include('departments._form')
             </div>
-            <div class="card-footer">
+            <div class="card-footer text-end">
                 <button class="btn btn-primary">Save</button>
-                <a href="{{ route('departments.index') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('departments.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>
     </div>

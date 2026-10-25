@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('student-lists.update', $list) }}" method="POST">
             @csrf
             @method('PUT')
@@ -54,7 +54,7 @@
             </div>
 
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ route('student-lists.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

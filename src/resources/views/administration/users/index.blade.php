@@ -9,7 +9,7 @@
     </div>
     <div class="col-sm-6 text-end">
         @can('adminusers.create')
-        <a href="{{ route('admin-users.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
+        <a href="{{ route('admin-users.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add User</a>
         @endcan
     </div>
 </div>
@@ -22,7 +22,7 @@
 <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<div class="card">
+<div class="card card-primary card-outline">
     <form method="GET" action="{{ route('admin-users.index') }}">
         {{-- keep the current sorting when filtering/searching --}}
         <input type="hidden" name="sort" value="{{ request('sort') }}">
@@ -66,7 +66,7 @@
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end gap-2">
-                    <button class="btn btn-info text-white">Search</button>
+                    <button class="btn btn-primary">Search</button>
                     <a href="{{ route('admin-users.index') }}" class="btn btn-light border">Reset</a>
                 </div>
             </div>

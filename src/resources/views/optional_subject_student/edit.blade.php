@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('optional-subject-students.update', $record) }}" method="POST">
             @csrf
             @method('PUT')
@@ -68,7 +68,7 @@
             </div>
 
             <div class="card-footer text-end">
-                <button type="submit" class="btn btn-info text-white">Update</button>
+                <button type="submit" class="btn btn-primary">Update</button>
                 <a href="{{ route('optional-subject-students.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>

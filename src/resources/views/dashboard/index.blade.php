@@ -10,7 +10,7 @@
     @include('partials.flash-error')
 
     {{-- who is logged in --}}
-    <div class="card">
+    <div class="card card-primary card-outline">
         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div>
                 <h5 class="mb-1">Welcome, {{ $user->name }}</h5>

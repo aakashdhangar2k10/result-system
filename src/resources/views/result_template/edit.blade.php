@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    <div class="card card-info card-outline">
+    <div class="card card-primary card-outline">
         <form action="{{ route('result-templates.update', $template) }}" method="POST" enctype="multipart/form-data"
               @if ($used > 0)
                   onsubmit="return confirm('This template was used for {{ $used }} printed sheet(s). Your changes also apply when those sheets are reprinted. Save anyway?')"
@@ -34,7 +34,7 @@
                     <i class="bi bi-eye"></i> Preview (saved settings)
                 </a>
                 <div>
-                    <button type="submit" class="btn btn-info text-white">Update</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
                     <a href="{{ route('result-templates.index') }}" class="btn btn-danger">Cancel</a>
                 </div>
             </div>

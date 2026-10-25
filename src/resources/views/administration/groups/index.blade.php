@@ -7,7 +7,7 @@
         <div class="col-sm-6"><h3 class="mb-0">Groups</h3></div>
         <div class="col-sm-6 text-end">
             @can('admingroups.create')
-                <a href="{{ route('admin-groups.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
+                <a href="{{ route('admin-groups.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Group</a>
             @endcan
         </div>
     </div>
@@ -20,7 +20,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form method="GET" action="{{ route('admin-groups.index') }}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">

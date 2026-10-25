@@ -7,15 +7,15 @@
 @stop
 
 @section('content')
-    <div class="card">
+    <div class="card card-primary card-outline">
         <form action="{{ route('semesters.store') }}" method="POST">
             @csrf
             <div class="card-body">
                 @include('configuration.semesters._form')
             </div>
-            <div class="card-footer">
+            <div class="card-footer text-end">
                 <button class="btn btn-primary">Save</button>
-                <a href="{{ route('semesters.index') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('semesters.index') }}" class="btn btn-danger">Cancel</a>
             </div>
         </form>
     </div>
