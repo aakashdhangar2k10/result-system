@@ -5,6 +5,7 @@ namespace App\Models\Semester;
 use App\Models\Batch\Batch;
 use App\Models\Configuration\SemesterList;
 use App\Models\Course\Course;
+use App\Support\ScopedByDepartment;
 use App\Support\Term;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,7 +14,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SemesterExam extends Model
 {
-   public const ORDINALS = [1 => 'First', 2 => 'Second', 3 => 'Third'];
+    use ScopedByDepartment;
+
+    // the Attempt dropdown of the Semester Exam form
+    public const ATTEMPTS = [
+        1 => 'First Attempt (1)',
+        2 => 'Second Attempt (2)',
+    ];
+
+    // "First", "Second": used in labels such as "First (June-2026)"
+    public const ORDINALS = [1 => 'First', 2 => 'Second', 3 => 'Third'];
 
     protected $table = 'mark_semester_exam';
     protected $primaryKey = 'semesterexamid';
@@ -33,16 +43,7 @@ class SemesterExam extends Model
             'is_delete' => 'boolean',
         ];
     }
-    // "First (June-2026)"
-    protected function examLabel(): Attribute
-    {
-    return Attribute::get(function () {
-        $ordinal = self::ORDINALS[$this->attempt] ?? ('Attempt ' . $this->attempt);
-        $month = $this->exammonth?->format('F-Y');
 
-        return $month ? "{$ordinal} ({$month})" : $ordinal;
-    });
-    }
     // Hide soft-deleted rows from every query automatically
     protected static function booted(): void
     {
@@ -71,10 +72,22 @@ class SemesterExam extends Model
         return $this->belongsTo(SemesterList::class, 'semid', 'semid');
     }
 
+    // "First Semester" or "First Year", depending on the course
     protected function termLabel(): Attribute
     {
         return Attribute::get(fn () => $this->term
             ? Term::label($this->term->name, $this->course?->structure_type)
             : '—');
+    }
+
+    // "First (June-2026)"
+    protected function examLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            $ordinal = self::ORDINALS[$this->attempt] ?? ('Attempt ' . $this->attempt);
+            $month = $this->exammonth?->format('F-Y');
+
+            return $month ? "{$ordinal} ({$month})" : $ordinal;
+        });
     }
 }
