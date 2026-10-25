@@ -60,14 +60,14 @@
                         </td>
                         <td>
                             @can('semesters.edit')
-                                <a href="{{ route('semesters.edit', $semester) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ route('semesters.edit', $semester) }}" class="btn btn-sm btn-info text-white"><i class="bi bi-pencil-square"></i></a>
                             @endcan
                             @can('semesters.delete')
                                 <form action="{{ route('semesters.destroy', $semester) }}" method="POST"
                                       class="d-inline" onsubmit="return confirm('Delete this semester?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                    <button class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             @endcan
                         </td>

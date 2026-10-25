@@ -25,12 +25,12 @@ class DepartmentContextController extends Controller
 
         DepartmentAccess::flush();
 
-        // an open record may not exist inside the new department: go to the dashboard instead of a 404
         $previous = url()->previous();
         $path = (string) parse_url($previous, PHP_URL_PATH);
 
+        // an open record may not exist in the new department, and old filters may point to another department's data
         return preg_match('#/\d+(/|$)#', $path)
             ? redirect()->route('dashboard.index')
-            : redirect($previous);
+            : redirect(strtok($previous, '?'));
     }
 }

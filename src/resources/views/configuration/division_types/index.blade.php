@@ -58,14 +58,14 @@
                         </td>
                         <td>
                             @can('divisiontypes.edit')
-                                <a href="{{ route('division-types.edit', $divisionType) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ route('division-types.edit', $divisionType) }}" class="btn btn-sm btn-info text-white"><i class="bi bi-pencil-square"></i></a>
                             @endcan
                             @can('divisiontypes.delete')
                                 <form action="{{ route('division-types.destroy', $divisionType) }}" method="POST"
                                       class="d-inline" onsubmit="return confirm('Delete this division type?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                    <button class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             @endcan
                         </td>

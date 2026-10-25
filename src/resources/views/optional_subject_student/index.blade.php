@@ -8,7 +8,7 @@
         <div class="col-sm-6 text-end">
             @can('optionalsubjectstudents.create')
                 <a href="{{ route('optional-subject-students.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> Add
+                    <i class="bi bi-plus-lg"></i> Add Optional Subject Students
                 </a>
             @endcan
         </div>

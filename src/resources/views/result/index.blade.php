@@ -7,7 +7,7 @@
         <div class="col-sm-6"><h3 class="mb-0">Result</h3></div>
         <div class="col-sm-6 text-end">
             @can('subjectresults.create')
-                <a href="{{ route('results.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
+                <a href="{{ route('results.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Result</a>
             @endcan
         </div>
     </div>

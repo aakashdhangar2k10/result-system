@@ -54,10 +54,10 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/img/AdminLTELogo.png',
+    'logo' => '<b>Trinaabh</b>',
+    'logo_img' => 'null',
     'logo_img_class' => 'brand-image opacity-75 shadow',
-    'logo_img_alt' => 'AdminLTE Logo',
+    'logo_img_alt' => '',
 
     /*
     |--------------------------------------------------------------------------

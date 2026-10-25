@@ -29,18 +29,7 @@
 
             <div class="card-body">
                 <div class="row mb-4">
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Department</label>
-                        <select name="deptid" class="form-select">
-                            <option value="">All Departments</option>
-                            @foreach ($departments as $department)
-                                <option value="{{ $department->deptid }}"
-                                    @selected(request('deptid') == $department->deptid)>
-                                    {{ $department->fullname }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Course Type</label>
                         <select name="coursetypeid" class="form-select">

@@ -60,14 +60,14 @@
                         <td>{{ $gradeType->updated_at?->format('d M Y, h:i A') }}</td>
                         <td>
                             @can('gradetypes.edit')
-                                <a href="{{ route('grade-types.edit', $gradeType) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ route('grade-types.edit', $gradeType) }}" class="btn btn-sm btn-info text-white"><i class="bi bi-pencil-square"></i></a>
                             @endcan
                             @can('gradetypes.delete')
                                 <form action="{{ route('grade-types.destroy', $gradeType) }}" method="POST"
                                       class="d-inline" onsubmit="return confirm('Delete this grade type?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                    <button class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             @endcan
                         </td>

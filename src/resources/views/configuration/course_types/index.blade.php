@@ -60,14 +60,14 @@
                         </td>
                         <td>
                             @can('coursetypes.edit')
-                                <a href="{{ route('course-types.edit', $courseType) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ route('course-types.edit', $courseType) }}" class="btn btn-sm btn-info text-white"><i class="bi bi-pencil-square"></i></a>
                             @endcan
                             @can('coursetypes.delete')
                                 <form action="{{ route('course-types.destroy', $courseType) }}" method="POST"
                                       class="d-inline" onsubmit="return confirm('Delete this course type?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger">Delete</button>
+                                    <button class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
                             @endcan
                         </td>
