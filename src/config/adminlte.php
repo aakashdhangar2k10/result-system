@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 4',
+    'title' => 'Trinaabh Result',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -124,8 +124,8 @@ return [
     |
     */
 
-    'footer_left' => 'Copyright &copy; 2014-' . date('Y') . ' <a href="https://adminlte.io" class="text-decoration-none">AdminLTE.io</a>. All rights reserved.',
-    'footer_right' => 'Anything you want',
+    'footer_left' => 'Copyright &copy; 2014-' . date('Y') . ' <a href="linkedin.com/in/trinaabh-291617169" class="text-decoration-none">Trinaabh</a>. All rights reserved.',
+    'footer_right' => 'Developed By Trinaabh',
     'preloader' => false,
     'control_sidebar' => false,
     'control_sidebar_theme' => 'dark',
@@ -133,12 +133,12 @@ return [
     // Documentation URL used by the navbar "Documentation" link and the sidebar
     // "View documentation" CTA (false to hide the CTA). Defaults to the in-app
     // docs viewer served at /docs (see the `docs` keys below).
-    'sidebar_docs_url' => '/docs',
+    'sidebar_docs_url' => '',
 
     // Bundled demo/showcase pages (Dashboard v2/v3, Widgets, UI, Forms, Tables,
     // Layout Options, Theme Generate, auth variants, error pages). Set false to
     // skip registering their routes in production.
-    'demo' => true,
+    'demo' => false,
     'demo_middleware' => ['web', 'auth'],
 
     // In-app documentation viewer: renders this package's docs/*.md files at
@@ -238,224 +238,6 @@ return [
     |   'submenu'     => [ ...child items... ]     // nested items (treeview)
     |
     */
-
-    // 'menu' => [
-    //     // ---- Sidebar: mirrors the AdminLTE 4 demo sidebar ----
-    //     ['header' => 'DASHBOARD'],
-    //     [
-    //         'text' => 'Dashboard',
-    //         'icon' => 'bi bi-speedometer',
-    //         'route' => 'dashboard.index',
-    //         'active' => ['dashboard*'],
-    //         'can' => 'dashboard.view',
-    //     ],
-    //     ['header' => 'ACADEMIC'],
-    //     [
-    //         'text' => 'Departments',
-    //         'route' => 'departments.index',
-    //         'icon' => 'bi bi-building',
-    //         'active' => ['departments*'],
-    //         'can' => 'departments.view',
-    //     ],
-    //     [
-    //         'text' => 'Configuration',
-    //         'icon' => 'bi bi-gear-fill  ',
-    //         'submenu' => [
-    //             ['text' => 'Course Types', 'route' => 'course-types.index', 'icon' => 'bi bi-tags', 'active' => ['configuration/course-types*'], 'can' => 'coursetypes.view',],
-    //             ['text' => 'Semester List', 'route' => 'semesters.index', 'icon' => 'bi bi-calendar3', 'active' => ['configuration/semesters*'], 'can' => 'semesters.view',],
-    //             ['text' => 'Grade Type', 'route' => 'grade-types.index', 'icon' => 'bi bi-award', 'active' => ['configuration/grade-types*'], 'can' => 'gradetypes.view',],
-    //             ['text' => 'Division Type', 'route' => 'division-types.index', 'icon' => 'bi bi-diagram-3', 'active' => ['configuration/division-types*'], 'can' => 'divisiontypes.view',],
-    //             ['text' => 'Subject Type', 'route' => 'subject-types.index', 'icon' => 'bi bi-bookmarks', 'active' => ['configuration/subject-types*'], 'can' => 'subjecttypes.view',],
-    //         ],
-    //     ],
-    //     [
-    //         'text' => 'Grade',
-    //         'route' => 'grades.index',
-    //         'icon' => 'bi bi-journal-check',
-    //         'active' => ['grades*'],
-    //         'can' => 'grades.view',
-    //     ],
-    //     [
-    //         'text' => 'Division',
-    //         'route' => 'divisions.index',
-    //         'icon' => 'bi bi-diagram-2',
-    //         'active' => ['divisions*'],
-    //         'can' => 'divisions.view',
-    //     ],
-    //     [
-    //         'text' => 'Courses',
-    //         'route' => 'courses.index',
-    //         'icon' => 'bi bi-mortarboard',
-    //         'active' => ['courses*'],
-    //         'can' => 'courses.view',
-    //     ],
-    //     [
-    //         'text' => 'Branches',
-    //         'route' => 'branches.index',
-    //         'icon' => 'bi bi-diagram-3-fill',
-    //         'active' => ['branches*'],
-    //         'can' => 'branches.view',
-    //     ],
-    //     [
-    //         'text' => 'Course Session',
-    //         'icon' => 'bi bi-calendar-check',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Batch / Session',
-    //                 'route' => 'batches.index',
-    //                 'icon' => 'bi bi-calendar-range',
-    //                 'active' => ['batches*'],
-    //                 'can' => 'batches.view',
-    //             ],
-    //             [
-    //                 'text' => 'Session Grade',
-    //                 'route' => 'session-grades.index',
-    //                 'icon' => 'bi bi-award',
-    //                 'active' => ['coursesession/session-grades*'],
-    //                 'can' => 'sessiongrades.view',
-    //             ],
-    //         ],
-    //     ],
-    //     [
-    //         'text' => 'Semester',
-    //         'icon' => 'bi bi-pie-chart',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Semester',
-    //                 'route' => 'course-semesters.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['course-semesters*'],
-    //                 'can' => 'coursesemesters.view',
-    //             ],
-    //             [
-    //                 'text' => 'Semester Exam',
-    //                 'route' => 'semester-exams.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['semester-exams*'],
-    //                 'can' => 'semesterexams.view',
-    //             ],
-    //         ],
-    //     ],
-    //     [
-    //         'text' => 'Subject',
-    //         'icon' => 'bi bi-book',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Subject',
-    //                 'route' => 'subjects.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['subjects*'],
-    //                 'can' => 'subjects.view',
-    //             ],
-    //             [
-    //                 'text' => 'Subject Order',
-    //                 'route' => 'subject-orders.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['subject-orders*'],
-    //                 'can' => 'subjectorders.view',
-    //             ],
-    //             [
-    //                 'text' => 'Session Subject',
-    //                 'route' => 'session-subjects.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['session-subjects*'],
-    //                 'can' => 'sessionsubjects.view',
-    //             ],
-    //         ],
-    //     ],
-    //     ['header' => 'STUDENT'],
-    //     [
-    //         'text' => 'Student',
-    //         'icon' => 'bi bi-people-fill',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Student',
-    //                 'route' => 'students.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['students*'],
-    //                 'can' => 'students.view',
-    //             ],
-    //             [
-    //                 'text' => 'Student Import Log',
-    //                 'route' => 'student-imports.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['student-imports*'],
-    //                 'can' => 'studentimports.view',
-    //             ],
-    //             [
-    //                 'text' => 'Student List',
-    //                 'route' => 'student-lists.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['student-lists*'],
-    //                 'can' => 'studentlists.view',
-    //             ],
-    //             [
-    //                 'text' => 'Optional Subject Student',
-    //                 'route' => 'optional-subject-students.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['optional-subject-students*'],
-    //                 'can' => 'optionalsubjectstudents.view',
-    //             ],
-    //         ],
-    //     ],
-    //     ['header' => 'RESULT'],
-    //     [
-    //         'text' => 'Result',
-    //         'icon' => 'bi bi-card-list',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Result',
-    //                 'route' => 'results.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['results*'],
-    //                 'can' => 'subjectresults.view',
-    //             ],
-    //             [
-    //                 'text' => 'Result Template',
-    //                 'route' => 'result-templates.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['result-templates*'],
-    //                 'can' => 'resulttemplates.view',
-    //             ],
-    //             [
-    //                 'text' => 'Final Result Points',
-    //                 'route' => 'result-finals.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['result-finals*'],
-    //                 'can' => 'coursefinals.view',
-    //             ],
-    //         ],
-    //     ],
-
-    //     ['header' => 'ADMINISTRATION'],
-    //     [
-    //         'text' => 'Administration',
-    //         'icon' => 'bi bi-shield-lock',
-    //         'submenu' => [
-    //             [
-    //                 'text' => 'Users',
-    //                 'route' => 'admin-users.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['administration/users*'],
-    //                 'can' => 'adminusers.view',
-    //             ],
-    //             [
-    //                 'text' => 'Roles',
-    //                 'route' => 'admin-roles.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['administration/roles*'],
-    //                 'can' => 'adminroles.view',
-    //             ],
-    //             [
-    //                 'text' => 'Groups',
-    //                 'route' => 'admin-groups.index',
-    //                 'icon' => 'bi bi-circle',
-    //                 'active' => ['administration/groups*'],
-    //                 'can' => 'admingroups.view',
-    //             ],
-    //         ],
-    //     ],
-    // ],
     'menu' => [
         ['header' => 'DASHBOARD'],
         [

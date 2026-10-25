@@ -33,7 +33,7 @@ use App\Http\Controllers\Result\ResultTemplateController;
 use App\Http\Controllers\Result\CourseFinalController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\ProfileController;
 
 
     Route::redirect('/', '/dashboard');
@@ -53,6 +53,9 @@ use Illuminate\Support\Facades\Route;
     Route::resource('users', UserController::class)->names('admin-users');
     Route::resource('roles', RoleController::class)->except('show')->names('admin-roles');
     Route::resource('groups', GroupController::class)->except('show')->names('admin-groups');
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('profile/password', [ProfileController::class, 'password'])->name('profile.password');
     
     });
 

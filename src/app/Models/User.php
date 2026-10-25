@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -87,5 +88,27 @@ class User extends Authenticatable implements JWTSubject
     public function allPermissionNames(): Collection
     {
         return $this->getAllPermissions()->pluck('name')->merge($this->groupPermissionNames())->unique()->values();
+    }
+
+    // initials on a coloured circle: no photo file is needed
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function () {
+            $initials = collect(preg_split('/\s+/', trim((string) $this->name)))
+                ->filter()
+                ->take(2)
+                ->map(fn($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+                ->implode('') ?: '?';
+
+            $colors = ['#0d6efd', '#198754', '#dc3545', '#fd7e14', '#6f42c1', '#20c997', '#0aa2c0'];
+            $color = $colors[crc32((string) $this->email) % count($colors)];
+
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">'
+                . '<rect width="128" height="128" fill="' . $color . '"/>'
+                . '<text x="50%" y="50%" dy=".35em" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" fill="#ffffff">'
+                . e($initials) . '</text></svg>';
+
+            return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        });
     }
 }
