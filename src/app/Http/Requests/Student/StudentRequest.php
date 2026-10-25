@@ -54,6 +54,7 @@ class StudentRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:500'],
             'mobile' => ['nullable', 'regex:/^\+?[0-9]{10,13}$/'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,gif,png', 'max:2048'],
+            'subject' => ['nullable', 'string', 'max:150'],
         ];
     }
 

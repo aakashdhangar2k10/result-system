@@ -9,8 +9,53 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ResultTemplate extends Model
 {
+    public const LAYOUTS = [
+        'semester' => 'Semester grade sheet',
+        'phd' => 'Ph.D. course work sheet',
+    ];
+
+    // the academic session as printed on the Ph.D. sheet
+    public const SESSION_FORMATS = [
+        'start' => '2022',
+        'short' => '2022-23',
+        'full' => '2022-2023',
+    ];
+
+    // what a row of the Ph.D. information table can show
+    public const INFO_FIELDS = [
+        'institute' => 'Name & Address of the Institute / School of Studies',
+        'course' => 'Programme',
+        'subject' => 'Subject',
+        'name' => 'Name of the Student',
+        'father' => "Father's/ Husband's Name",
+        'mother' => "Mother's Name",
+        'enrollment' => 'Enrollment No.',
+        'roll' => 'Roll No.',
+        'session' => 'Academic Session',
+        'batch' => 'Batch',
+        'term' => 'Semester',
+        'exam' => 'Examination Month & Year',
+        'apaar' => 'APAAR ID',
+    ];
+
+    // the rows of your Ph.D. sample
+    public const DEFAULT_INFO_ROWS = [
+        ['field' => 'institute', 'label' => 'Name & Address of the Institue/ School of Studies College Where Ph.D. Course Work is Conducted'],
+        ['field' => 'subject', 'label' => 'Subject'],
+        ['field' => 'name', 'label' => 'Name of the Student:'],
+        ['field' => 'father', 'label' => "Father's/ Husband's Name"],
+        ['field' => 'mother', 'label' => "Mother's Name"],
+        ['field' => 'enrollment', 'label' => 'Enrollment No.'],
+        ['field' => 'roll', 'label' => 'Roll No.'],
+        ['field' => 'session', 'label' => 'Academic Session'],
+        ['field' => 'term', 'label' => 'Semester'],
+        ['field' => 'exam', 'label' => 'Examination Month & Year'],
+    ];
+
+    public const DEFAULT_CERTIFICATE = 'This is certified that Mr./Ms./Mrs. {name} has successfully completed the Ph.D. Course Work as per UGC Regulations 2016/2022 and the Ph.D. Ordinance of the University.';
+
     // quick-add buttons in the footer editor
-    public const SIGNATURES = ['Prepared by', 'Co-ordinator', 'Head', 'Head/Director', 'Asst. Registrar(Exam.)', 'Dean', 'Controller of Examinations'];
+    public const SIGNATURES = ['Prepared by', 'Co-ordinator', 'Head', 'Head/Director', 'Asst. Registrar(Exam.)', 'Controller of Examinations', 'Dean'];
     public const MAX_SIGNATURES = 6;
 
     public const ALIGN = ['left' => 'Left', 'center' => 'Centre', 'right' => 'Right'];
@@ -42,19 +87,26 @@ class ResultTemplate extends Model
     public const FLAGS = [
         'is_default', 'show_header', 'show_logo', 'show_department', 'show_header_line', 'show_photo',
         'show_duration', 'show_institute_block', 'show_marks', 'show_semester_summary', 'show_legend',
-        'show_declared_date', 'show_repeat_note', 'show_final_result', 'show_footer', 'active',
+        'show_declared_date', 'show_repeat_note', 'show_final_result',
+        'show_attempt_row', 'show_result_row', 'show_equivalent', 'show_division',
+        'show_equivalent_note', 'show_certificate', 'certificate_pass_only',
+        'show_footer', 'active',
     ];
 
     protected $table = 'mark_result_template';
     protected $primaryKey = 'templateid';
 
     protected $fillable = [
-        'name', 'is_default', 'title', 'programme_label', 'exam_label', 'date_format', 'show_duration',
+        'name', 'layout', 'is_default', 'title', 'programme_label', 'exam_label', 'date_format', 'show_duration',
         'show_header', 'show_logo', 'logo', 'university_name', 'header_lines_top', 'show_department',
         'header_lines_bottom', 'show_header_line', 'show_photo',
         'show_institute_block', 'institute_label', 'address_label', 'institute_address',
         'show_marks', 'show_semester_summary', 'show_legend', 'show_declared_date',
         'show_repeat_note', 'show_final_result',
+        'info_rows', 'default_subject', 'session_format', 'attempt_label', 'result_row_label',
+        'equivalent_label', 'division_label', 'certificate_text',
+        'show_attempt_row', 'show_result_row', 'show_equivalent', 'show_division',
+        'show_equivalent_note', 'show_certificate', 'certificate_pass_only',
         'show_footer', 'footer_items',
         'header_align', 'title_align', 'institute_align', 'programme_align', 'logo_position', 'photo_position',
         'margin_mode', 'margin_top', 'margin_right', 'margin_bottom', 'margin_left',
@@ -80,8 +132,16 @@ class ResultTemplate extends Model
             'show_declared_date' => 'boolean',
             'show_repeat_note' => 'boolean',
             'show_final_result' => 'boolean',
+            'show_attempt_row' => 'boolean',
+            'show_result_row' => 'boolean',
+            'show_equivalent' => 'boolean',
+            'show_division' => 'boolean',
+            'show_equivalent_note' => 'boolean',
+            'show_certificate' => 'boolean',
+            'certificate_pass_only' => 'boolean',
             'show_footer' => 'boolean',
             'footer_items' => 'array',
+            'info_rows' => 'array',
             'space_header_top' => 'decimal:1',
             'space_header_side' => 'decimal:1',
             'space_header_lines' => 'decimal:1',
@@ -121,6 +181,7 @@ class ResultTemplate extends Model
     {
         return new static([
             'name' => '',
+            'layout' => 'semester',
             'title' => 'GRADE-SHEET',
             'programme_label' => 'Name of the Programme:',
             'exam_label' => 'Examination',
@@ -143,6 +204,21 @@ class ResultTemplate extends Model
             'show_declared_date' => true,
             'show_repeat_note' => true,
             'show_final_result' => true,
+            'info_rows' => self::DEFAULT_INFO_ROWS,
+            'default_subject' => '',
+            'session_format' => 'start',
+            'attempt_label' => 'Attempt',
+            'result_row_label' => 'Result',
+            'equivalent_label' => 'Equivalent Percentage:-',
+            'division_label' => 'Division:',
+            'certificate_text' => self::DEFAULT_CERTIFICATE,
+            'show_attempt_row' => true,
+            'show_result_row' => true,
+            'show_equivalent' => true,
+            'show_division' => true,
+            'show_equivalent_note' => true,
+            'show_certificate' => true,
+            'certificate_pass_only' => true,
             'show_footer' => true,
             'footer_items' => ['Prepared by', 'Co-ordinator', 'Head'],
             'header_align' => 'center',
@@ -164,6 +240,21 @@ class ResultTemplate extends Model
             array_map('trim', preg_split('/\R/', (string) $text)),
             fn ($line) => $line !== ''
         ));
+    }
+
+    // the rows of the Ph.D. information table: only known fields, every row with a label
+    public function infoRows(): array
+    {
+        $rows = collect($this->info_rows ?: self::DEFAULT_INFO_ROWS)
+            ->filter(fn ($row) => isset(self::INFO_FIELDS[$row['field'] ?? '']))
+            ->map(fn ($row) => [
+                'field' => $row['field'],
+                'label' => trim((string) ($row['label'] ?? '')) ?: self::INFO_FIELDS[$row['field']],
+            ])
+            ->values()
+            ->all();
+
+        return $rows ?: self::DEFAULT_INFO_ROWS;
     }
 
     public function marginsMm(): array

@@ -23,9 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class GradeSheetService
 {
-    public function __construct(private SemesterResultService $sgpa)
-    {
-    }
+    public function __construct(private SemesterResultService $sgpa) {}
 
     /**
      * The template to print with: the one chosen, else the one assigned to the course and session,
@@ -37,13 +35,13 @@ class GradeSheetService
             return $chosen;
         }
 
-        $assigned = fn (bool $session) => ResultTemplate::where('active', true)
-            ->whereHas('assignments', fn ($q) => $q
+        $assigned = fn(bool $session) => ResultTemplate::where('active', true)
+            ->whereHas('assignments', fn($q) => $q
                 ->where('courseid', $exam->courseid)
                 ->when(
                     $session,
-                    fn ($w) => $w->where('batchid', $exam->batchid),
-                    fn ($w) => $w->whereNull('batchid')
+                    fn($w) => $w->where('batchid', $exam->batchid),
+                    fn($w) => $w->whereNull('batchid')
                 ))
             ->first();
 
@@ -80,6 +78,11 @@ class GradeSheetService
 
         $students = $this->order($students->all(), $summaries, $options['sort'] ?? 'roll', $options['dir'] ?? 'asc');
 
+        // the Ph.D. layout has its own table structure
+        if ($template->layout === 'phd') {
+            return $this->phdPack($exam, $template, $students, $summaries, $showHeader, $showPhoto);
+        }
+
         // the SGPA record of every semester of these students
         $history = SemesterResultItem::query()
             ->join('mark_semester_result as h', 'h.semresultid', '=', 'mark_semester_result_item.semresultid')
@@ -97,8 +100,8 @@ class GradeSheetService
         $block = $this->block($course, $currentNumber, CourseFinal::where('courseid', $exam->courseid)->orderBy('to_term')->get());
 
         $terms = SemesterList::get()
-            ->filter(fn ($t) => ($n = Term::number($t->roman)) >= $block['from'] && $n <= $block['to'])
-            ->sortBy(fn ($t) => Term::number($t->roman))
+            ->filter(fn($t) => ($n = Term::number($t->roman)) >= $block['from'] && $n <= $block['to'])
+            ->sortBy(fn($t) => Term::number($t->roman))
             ->values();
 
         $expected = $block['to'] - $block['from'] + 1;
@@ -153,7 +156,7 @@ class GradeSheetService
                 $found = null;
 
                 if ($number === $currentNumber) {
-                    $found = $mine->first(fn ($r) => (int) $r->term_exam === (int) $exam->semesterexamid);
+                    $found = $mine->first(fn($r) => (int) $r->term_exam === (int) $exam->semesterexamid);
                 } elseif ($number < $currentNumber) {
                     $found = $mine->where('term_semid', $term->semid)->sortByDesc('term_attempt')->first();
                 }
@@ -204,8 +207,13 @@ class GradeSheetService
             'spacing' => $template->spacingMm(),
             'sheets' => $sheets,
             'file' => Str::slug(implode(' ', array_filter([
-                'gradesheet', $course?->shortname, $batch?->label, Term::base($exam->term?->name),
-                'attempt', $exam->attempt, count($sheets) === 1 ? $sheets[0]['roll'] : null,
+                'gradesheet',
+                $course?->shortname,
+                $batch?->label,
+                Term::base($exam->term?->name),
+                'attempt',
+                $exam->attempt,
+                count($sheets) === 1 ? $sheets[0]['roll'] : null,
             ]))) ?: 'gradesheet',
         ];
     }
@@ -226,7 +234,8 @@ class GradeSheetService
         $options->set('fontCache', $dir);
 
         $dompdf = new Dompdf($options);
-        $dompdf->loadHtml(View::make('result.gradesheet.pdf', ['pack' => $pack])->render());
+        $view = ($pack['template']->layout ?? 'semester') === 'phd' ? 'result.gradesheet.phd' : 'result.gradesheet.pdf';
+        $dompdf->loadHtml(View::make($view, ['pack' => $pack])->render());
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
@@ -252,7 +261,7 @@ class GradeSheetService
         }
 
         $found = $finals
-            ->filter(fn ($f) => $f->from_term <= $current && $current <= $f->to_term)
+            ->filter(fn($f) => $f->from_term <= $current && $current <= $f->to_term)
             ->sortBy('to_term')
             ->first();
 
@@ -266,10 +275,10 @@ class GradeSheetService
     {
         $present = array_filter($records);
         $complete = count($records) >= $expected && count($present) === count($records);
-        $allPass = $complete && collect($present)->every(fn ($r) => $r->status === 'pass');
+        $allPass = $complete && collect($present)->every(fn($r) => $r->status === 'pass');
 
-        $credits = collect($present)->sum(fn ($r) => (float) $r->credits);
-        $points = collect($present)->sum(fn ($r) => (float) $r->credit_points);
+        $credits = collect($present)->sum(fn($r) => (float) $r->credits);
+        $points = collect($present)->sum(fn($r) => (float) $r->credit_points);
         $cgpa = $credits > 0 ? round($points / $credits, 2) : 0.0;
 
         if (! $complete) {
@@ -284,7 +293,7 @@ class GradeSheetService
         }
 
         $division = $status === 'pass'
-            ? $divisions->first(fn ($d) => (float) $d->startpoint <= $cgpa && (float) $d->endpoint >= $cgpa)?->divisionname
+            ? $divisions->first(fn($d) => (float) $d->startpoint <= $cgpa && (float) $d->endpoint >= $cgpa)?->divisionname
             : null;
 
         return [
@@ -349,5 +358,160 @@ class GradeSheetService
         }
 
         return 'data:' . ($disk->mimeType($path) ?: 'image/png') . ';base64,' . base64_encode($disk->get($path));
+    }
+
+    // Ph.D. course work sheet: information table, course table, result lines and a certificate
+    private function phdPack(SemesterExam $exam, ResultTemplate $template, array $students, $summaries, bool $showHeader, bool $showPhoto): array
+    {
+        $course = $exam->course;
+        $batch = $exam->batch;
+        $rule = $this->sgpa->rule($exam);
+
+        $divisions = ($template->show_division && $rule?->divtypeid)
+            ? Division::where('divtypeid', $rule->divtypeid)->where('active', true)->get()
+            : collect();
+
+        $multiplier = (float) config('result.cgpa_multiplier', 10);
+        $multiplierText = rtrim(rtrim(number_format($multiplier, 2, '.', ''), '0'), '.');
+        $infoRows = $template->infoRows();
+        $certificate = trim((string) ($template->certificate_text ?: ResultTemplate::DEFAULT_CERTIFICATE));
+        $session = $this->sessionText($batch, $template->session_format);
+
+        $sheets = [];
+
+        foreach ($students as $student) {
+            $summary = $summaries->get($student->studentid);
+            $sgpa = (float) ($summary?->sgpa ?? 0);
+            $passed = $summary?->status === 'pass';
+
+            $values = [
+                'institute' => trim($course?->department?->fullname . ($template->institute_address ? ', ' . $template->institute_address : '')),
+                'course' => (string) $course?->fullname,
+                'subject' => $student->subject ?: (string) $template->default_subject,
+                'name' => (string) $student->full_name,
+                'father' => trim($student->father_title . ' ' . $student->fathername),
+                'mother' => trim($student->mother_title . ' ' . $student->mothername),
+                'enrollment' => (string) $student->enrollmentno,
+                'roll' => (string) $student->rollno,
+                'session' => $session,
+                'batch' => $batch?->startyear . '-' . substr((string) $batch?->endyear, -2)
+                    . ($batch?->branch ? ' (' . $batch->branch->shortname . ')' : ''),
+                'term' => (string) $exam->term?->roman,
+                'exam' => (string) $exam->exammonth?->format('F-Y'),
+                'apaar' => (string) $student->apaarid,
+            ];
+
+            $info = [];
+            foreach ($infoRows as $row) {
+                $value = trim((string) ($values[$row['field']] ?? ''));
+
+                // optional fields without a value are left out
+                if ($value === '' && in_array($row['field'], ['subject', 'apaar'], true)) {
+                    continue;
+                }
+
+                $info[] = ['label' => $row['label'], 'value' => $value];
+            }
+
+            $division = $passed
+                ? $divisions->first(fn($d) => (float) $d->startpoint <= $sgpa && (float) $d->endpoint >= $sgpa)?->divisionname
+                : null;
+
+            $sheets[] = [
+                'roll' => (string) $student->rollno,
+                'info' => $info,
+                'rows' => $this->courseRows($exam, $student->studentid),
+                'total_credits' => ResultService::fmt($summary?->credits) ?: '0',
+                'total_points' => ResultService::fmt($summary?->credit_points) ?: '0',
+                'sgpa' => number_format($sgpa, 2),
+                'attempt' => SemesterExam::ORDINALS[$exam->attempt] ?? (string) $exam->attempt,
+                'result' => (string) ($summary?->result_label ?? '-'),
+                'passed' => $passed,
+                // the equivalent percentage and the division are for students who passed
+                'equivalent' => $passed ? rtrim(rtrim(number_format($sgpa * $multiplier, 2, '.', ''), '0'), '.') : null,
+                'division' => $division,
+                'certificate' => ($template->show_certificate && ($passed || ! $template->certificate_pass_only))
+                    ? strtr($certificate, [
+                        '{name}' => (string) $student->full_name,
+                        '{course}' => (string) $course?->fullname,
+                        '{roll}' => (string) $student->rollno,
+                        '{enrollment}' => (string) $student->enrollmentno,
+                        '{session}' => $session,
+                    ])
+                    : null,
+                'photo' => $showPhoto ? $this->dataUri($student->image) : null,
+                'declared' => $exam->resultdate?->format($template->date_format ?: 'j F, Y'),
+            ];
+        }
+
+        return [
+            'template' => $template,
+            'exam_label' => $template->exam_label ?: 'Examination',
+            'show_header' => $showHeader,
+            'show_photo' => $showPhoto,
+            'logo' => $template->show_logo ? $this->dataUri($template->logo) : null,
+            'margins' => $template->marginsMm(),
+            'spacing' => $template->spacingMm(),
+            'multiplier' => $multiplierText,
+            'sheets' => $sheets,
+            'file' => Str::slug(implode(' ', array_filter([
+                'phd-gradesheet',
+                $course?->shortname,
+                $batch?->label,
+                'attempt',
+                $exam->attempt,
+                count($sheets) === 1 ? $sheets[0]['roll'] : null,
+            ]))) ?: 'phd-gradesheet',
+        ];
+    }
+
+    // the subject lines of one student, for the course table
+    private function courseRows(SemesterExam $exam, int $studentId): array
+    {
+        $rows = [];
+
+        foreach ($this->sgpa->breakdown($exam, $studentId) as $line) {
+            $subject = $line['subject'];
+            $row = $line['row'];
+
+            $credit = $row ? (float) $row->subject_credit : (float) $subject->subjectcredit;
+            $point = $row ? (int) $row->grade_point : null;
+
+            $marks = null;
+            if ($row && ($row->entry_mode ?? 'marks') === 'marks') {
+                $marks = [
+                    'internal' => $row->internal !== null ? ResultService::fmt($row->internal) : '-',
+                    'external' => $row->external_absent ? 'Ab' : ($row->external !== null ? ResultService::fmt($row->external) : '-'),
+                    'total' => $row->is_absent ? 'Ab' : ($row->total !== null ? ResultService::fmt($row->total) : '-'),
+                ];
+            }
+
+            $rows[] = [
+                'code' => (string) $subject->subjectcode,
+                'title' => (string) $subject->subjectname,
+                'credit' => ResultService::fmt($credit),
+                'grade' => $row ? (string) $row->grade : '-',
+                'repeat' => $row && (int) $row->attempt > 1,
+                'point' => $point === null ? '-' : $point,
+                'points' => ResultService::fmt(($row && $row->is_pass) ? $credit * $point : 0) ?: '0',
+                'marks' => $marks,
+            ];
+        }
+
+        return $rows;
+    }
+
+    // "2022", "2022-23" or "2022-2023"
+    private function sessionText($batch, ?string $format): string
+    {
+        if (! $batch) {
+            return '';
+        }
+
+        return match ($format) {
+            'short' => $batch->startyear . '-' . substr((string) $batch->endyear, -2),
+            'full' => $batch->startyear . '-' . $batch->endyear,
+            default => (string) $batch->startyear,
+        };
     }
 }

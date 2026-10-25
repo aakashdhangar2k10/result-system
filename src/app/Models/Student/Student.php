@@ -23,7 +23,7 @@ class Student extends Model
     'courseid', 'batchid', 'importid', 'rollno', 'enrollmentno', 'apaarid',
     'firstname', 'lastname',
     'father_label', 'father_title', 'fathername',
-    'mother_title', 'mothername',
+    'mother_title', 'mothername','subject',
     'address', 'mobile', 'image', 'active', 'is_delete',
     ];
 

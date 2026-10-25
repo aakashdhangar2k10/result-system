@@ -130,6 +130,16 @@
 </div>
 
 <div class="row mb-3">
+    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Subject</label>
+    <div class="col-sm-9">
+        <input type="text" name="subject" value="{{ old('subject', $student->subject) }}"
+               class="form-control @error('subject') is-invalid @enderror" placeholder="Commerce (printed on the Ph.D. sheet)">
+        @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">Optional. Used by Ph.D. sheets that print a Subject row.</div>
+    </div>
+</div>
+
+<div class="row mb-3">
     <label class="col-sm-3 col-form-label fw-bold text-sm-end">Address</label>
     <div class="col-sm-9">
         <input type="text" name="address" value="{{ old('address', $student->address) }}"

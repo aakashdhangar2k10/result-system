@@ -23,6 +23,7 @@
             </tr>
             <tr><th>{{ $student->father_label ?: 'Father' }}'s Name</th><td>{{ $student->father_display }}</td></tr>
             <tr><th>Mother's Name</th><td>{{ $student->mother_display }}</td></tr>
+            <tr><th>Subject</th><td>{{ $student->subject ?: '—' }}</td></tr>
             <tr><th>Address</th><td>{{ $student->address ?: '—' }}</td></tr>
             <tr><th>Mobile</th><td>{{ $student->mobile ?: '—' }}</td></tr>
             <tr>

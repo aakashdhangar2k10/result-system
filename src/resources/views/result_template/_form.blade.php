@@ -2,6 +2,7 @@
     $footer = array_values((array) old('footer_items', $template->footer_items ?? []));
     $mode = old('margin_mode', $template->margin_mode ?? 'auto');
     $spacingMode = old('spacing_mode', $template->spacing_mode ?? 'auto');
+    $layout = old('layout', $template->layout ?? 'semester');
     $flag = fn (string $name, $default = false) => (bool) old($name, $template->{$name} ?? $default);
 
     // the rows of "Where this template is used", restored after a validation error
@@ -17,12 +18,14 @@
         'text' => $b->label . ($b->branch ? ' – ' . $b->branch->shortname : ''),
     ])->values()->all();
 
+    $infoRows = array_values((array) old('info_rows', $template->infoRows()));
+
     $spacing = [
         'header_top' => ['Space above the header', 'Extra space over the header, on top of the page margin.', 60],
         'header_side' => ['Header left / right inset', 'Pulls the header away from both side margins.', 60],
         'header_lines' => ['Gap between header lines', 'The space between two lines of the header.', 20],
         'after_header' => ['Gap between the header and the grade sheet', 'The space after the header (and its line) before the title.', 60],
-        'sections' => ['Gap between sections', 'The space between the student block, the course table and the semester table.', 60],
+        'sections' => ['Gap between sections', 'The space between the tables of the sheet.', 60],
         'footer' => ['Gap before the signatures', 'The space between the sheet and the signature line.', 60],
     ];
 @endphp
@@ -34,6 +37,23 @@
         <input type="text" name="name" value="{{ old('name', $template->name) }}"
                class="form-control @error('name') is-invalid @enderror" placeholder="Grade sheet, School of Commerce" required>
         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+</div>
+
+<div class="row mb-3">
+    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Sheet type</label>
+    <div class="col-sm-9">
+        @foreach (\App\Models\Result\ResultTemplate::LAYOUTS as $value => $label)
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="layout" id="layout_{{ $value }}" value="{{ $value }}" @checked($layout === $value)>
+                <label class="form-check-label" for="layout_{{ $value }}">{{ $label }}</label>
+            </div>
+        @endforeach
+        @error('layout') <div class="text-danger small">{{ $message }}</div> @enderror
+        <div class="form-text">
+            <strong>Semester grade sheet:</strong> header, student block, course table, semester-wise details and final result.<br>
+            <strong>Ph.D. course work sheet:</strong> information table, course table, result lines, certificate and signatures.
+        </div>
     </div>
 </div>
 
@@ -96,26 +116,31 @@
     <div class="col-sm-2">@include('result_template._align', ['name' => 'title_align'])</div>
 </div>
 
-<div class="row mb-3">
-    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Programme line</label>
-    <div class="col-sm-5">
-        <input type="text" name="programme_label" value="{{ old('programme_label', $template->programme_label) }}"
-               class="form-control @error('programme_label') is-invalid @enderror" placeholder="Name of the Programme:">
-        @error('programme_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        <div class="form-text">Leave empty to print only the course name.</div>
+<div class="only-semester">
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Programme line</label>
+        <div class="col-sm-5">
+            <input type="text" name="programme_label" value="{{ old('programme_label', $template->programme_label) }}"
+                   class="form-control @error('programme_label') is-invalid @enderror" placeholder="Name of the Programme:">
+            @error('programme_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="form-text">Leave empty to print only the course name.</div>
+        </div>
+        <div class="col-sm-2">@include('result_template._align', ['name' => 'programme_align'])</div>
     </div>
-    <div class="col-sm-2">@include('result_template._align', ['name' => 'programme_align'])</div>
+
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Exam label</label>
+        <div class="col-sm-5">
+            <input type="text" name="exam_label" value="{{ old('exam_label', $template->exam_label) }}"
+                   class="form-control @error('exam_label') is-invalid @enderror" placeholder="Examination">
+            @error('exam_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="form-text">For example "Examination: November-2023" or "Session: June-2025".</div>
+        </div>
+    </div>
 </div>
 
 <div class="row mb-3">
-    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Exam label</label>
-    <div class="col-sm-3">
-        <input type="text" name="exam_label" value="{{ old('exam_label', $template->exam_label) }}"
-               class="form-control @error('exam_label') is-invalid @enderror" placeholder="Examination" required>
-        @error('exam_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        <div class="form-text">For example "Examination: November-2023" or "Session: June-2025".</div>
-    </div>
-    <label class="col-sm-2 col-form-label fw-bold text-sm-end">Date format</label>
+    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Date format</label>
     <div class="col-sm-3">
         <select name="date_format" class="form-select @error('date_format') is-invalid @enderror">
             @foreach (\App\Models\Result\ResultTemplate::DATE_FORMATS as $value => $example)
@@ -127,79 +152,213 @@
 </div>
 
 <div class="row mb-3">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check form-switch">
-            <input type="hidden" name="show_duration" value="0">
-            <input class="form-check-input" type="checkbox" role="switch" name="show_duration" id="show_duration" value="1" @checked($flag('show_duration', true))>
-            <label class="form-check-label" for="show_duration">Add the course length after the programme name (for example "- 2 Years")</label>
+    <label class="col-sm-3 col-form-label fw-bold text-sm-end">Institute address</label>
+    <div class="col-sm-9">
+        <input type="text" name="institute_address" value="{{ old('institute_address', $template->institute_address) }}"
+               class="form-control @error('institute_address') is-invalid @enderror" placeholder="Indore">
+        @error('institute_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">
+            Printed in the institute block of the semester sheet, and after the department name in the Ph.D. information table.
+            Leave it empty to print the name only.
         </div>
-        <div class="form-text">When the course name already has its length, like "M.B.A. (Foreign Trade)- 2 Years", nothing is added.</div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-sm-9 offset-sm-3">
+        <div class="only-semester">
+            @foreach ([
+                'show_duration' => 'Add the course length after the programme name (for example "- 2 Years")',
+                'show_semester_summary' => 'Semester-wise details table (I, II, III, IV)',
+                'show_legend' => 'Line "SGPA: Semester Grade Point Average"',
+                'show_final_result' => 'Final result block (total credits, CGPA, equivalent percentage, division) on the sheet of a final semester',
+            ] as $name => $label)
+                <div class="form-check form-switch">
+                    <input type="hidden" name="{{ $name }}" value="0">
+                    <input class="form-check-input" type="checkbox" role="switch" name="{{ $name }}" id="{{ $name }}" value="1"
+                           @checked($flag($name, true))>
+                    <label class="form-check-label" for="{{ $name }}">{{ $label }}</label>
+                </div>
+            @endforeach
+            <div class="form-text">
+                When the course name already has its length, like "M.B.A. (Foreign Trade)- 2 Years", nothing is added.
+                The semesters where a final result prints are set under <strong>Result → Final Result Points</strong>.
+            </div>
+        </div>
 
         @foreach ([
-            'show_semester_summary' => 'Semester-wise details table (I, II, III, IV)',
-            'show_legend' => 'Line "SGPA: Semester Grade Point Average"',
-            'show_final_result' => 'Final result block (total credits, CGPA, equivalent percentage, division) on the sheet of a final semester',
-            'show_repeat_note' => 'Mark grades of repeat examinations with * and print "* Grade in Repeat Examination"',
+            'show_repeat_note' => 'Mark grades of repeat examinations with * and print "*Grade in Repeat Examination" (on the Ph.D. sheet the note prints whenever this is on)',
             'show_declared_date' => 'Date of Result',
             'show_marks' => 'Marks columns (Internal, External, Total)',
         ] as $name => $label)
             <div class="form-check form-switch">
                 <input type="hidden" name="{{ $name }}" value="0">
                 <input class="form-check-input" type="checkbox" role="switch" name="{{ $name }}" id="{{ $name }}" value="1"
-                       @checked($flag($name, in_array($name, ['show_semester_summary', 'show_legend', 'show_final_result', 'show_repeat_note', 'show_declared_date'])))>
+                       @checked($flag($name, in_array($name, ['show_repeat_note', 'show_declared_date'])))>
                 <label class="form-check-label" for="{{ $name }}">{{ $label }}</label>
             </div>
         @endforeach
-        <div class="form-text">
-            The semesters where a final result prints are set under <strong>Result → Final Result Points</strong>.
-        </div>
     </div>
 </div>
 
-{{-- institute block --}}
-<h5 class="mt-4 mb-3 border-bottom pb-2">Institute block</h5>
-
-<div class="row mb-3">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check form-switch">
-            <input type="hidden" name="show_institute_block" value="0">
-            <input class="form-check-input" type="checkbox" role="switch" name="show_institute_block" id="show_institute_block" value="1" @checked($flag('show_institute_block'))>
-            <label class="form-check-label fw-bold" for="show_institute_block">Print the institute block</label>
-        </div>
-        <div class="form-text">
-            Prints "Name of the Institute / School of Studies : School Of Commerce" (the department of the course)
-            and, below it, the address line.
-        </div>
-    </div>
-</div>
-
-<div id="instituteBox">
-    <div class="row mb-3">
-        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Name line label</label>
-        <div class="col-sm-5">
-            <input type="text" name="institute_label" value="{{ old('institute_label', $template->institute_label) }}"
-                   class="form-control @error('institute_label') is-invalid @enderror" required>
-            @error('institute_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="col-sm-2">@include('result_template._align', ['name' => 'institute_align'])</div>
-    </div>
+{{-- Ph.D. sheet --}}
+<div class="only-phd">
+    <h5 class="mt-4 mb-3 border-bottom pb-2">Ph.D. sheet</h5>
 
     <div class="row mb-3">
-        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Address line label</label>
-        <div class="col-sm-5">
-            <input type="text" name="address_label" value="{{ old('address_label', $template->address_label) }}"
-                   class="form-control @error('address_label') is-invalid @enderror" required>
-            @error('address_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-    </div>
-
-    <div class="row mb-3">
-        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Address</label>
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Information table</label>
         <div class="col-sm-9">
-            <input type="text" name="institute_address" value="{{ old('institute_address', $template->institute_address) }}"
-                   class="form-control @error('institute_address') is-invalid @enderror" placeholder="Indore">
-            @error('institute_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            <div class="form-text">Leave it empty to print the name line only.</div>
+            <div class="row g-2 fw-bold small mb-1">
+                <div class="col-md-4">Shows</div>
+                <div class="col-md-6">Label printed on the sheet</div>
+            </div>
+
+            <div id="infoList"></div>
+
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addInfo"><i class="bi bi-plus-lg"></i> Add row</button>
+            <button type="button" class="btn btn-sm btn-light border" id="resetInfo"><i class="bi bi-arrow-counterclockwise"></i> Reset to the sample rows</button>
+
+            @error('info_rows') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            <div class="form-text">
+                The left column of the table is the label, the right column the value of the student.
+                Use the arrows to change the order. A Subject or APAAR ID row is left out for a student who has no value.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Default subject</label>
+        <div class="col-sm-4">
+            <input type="text" name="default_subject" value="{{ old('default_subject', $template->default_subject) }}"
+                   class="form-control @error('default_subject') is-invalid @enderror" placeholder="Commerce">
+            @error('default_subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <label class="col-sm-2 col-form-label fw-bold text-sm-end">Session as</label>
+        <div class="col-sm-3">
+            <select name="session_format" class="form-select @error('session_format') is-invalid @enderror">
+                @foreach (\App\Models\Result\ResultTemplate::SESSION_FORMATS as $value => $example)
+                    <option value="{{ $value }}" @selected(old('session_format', $template->session_format) === $value)>{{ $example }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-sm-9 offset-sm-3">
+            <div class="form-text">
+                The default subject is printed when a student has no Subject of his own (set it under Student → Edit).
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Result lines</label>
+        <div class="col-sm-9">
+            @foreach ([
+                ['show_attempt_row', 'attempt_label', 'Attempt row (attempt and SGPA)', 'Attempt'],
+                ['show_result_row', 'result_row_label', 'Result row (result, equivalent percentage and division)', 'Result'],
+            ] as [$switch, $labelField, $text, $placeholder])
+                <div class="row g-2 align-items-center mb-1">
+                    <div class="col-md-7">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="{{ $switch }}" value="0">
+                            <input class="form-check-input" type="checkbox" role="switch" name="{{ $switch }}" id="{{ $switch }}" value="1" @checked($flag($switch, true))>
+                            <label class="form-check-label" for="{{ $switch }}">{{ $text }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="{{ $labelField }}" value="{{ old($labelField, $template->{$labelField}) }}"
+                               class="form-control form-control-sm @error($labelField) is-invalid @enderror" maxlength="30" placeholder="{{ $placeholder }}">
+                    </div>
+                </div>
+            @endforeach
+
+            @foreach ([
+                ['show_equivalent', 'equivalent_label', 'Equivalent percentage (SGPA × ' . (float) config('result.cgpa_multiplier', 10) . ') for students who passed', 'Equivalent Percentage:-'],
+                ['show_division', 'division_label', 'Division (from the Division Type of the session) for students who passed', 'Division:'],
+            ] as [$switch, $labelField, $text, $placeholder])
+                <div class="row g-2 align-items-center mb-1">
+                    <div class="col-md-7">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="{{ $switch }}" value="0">
+                            <input class="form-check-input" type="checkbox" role="switch" name="{{ $switch }}" id="{{ $switch }}" value="1" @checked($flag($switch, true))>
+                            <label class="form-check-label" for="{{ $switch }}">{{ $text }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="{{ $labelField }}" value="{{ old($labelField, $template->{$labelField}) }}"
+                               class="form-control form-control-sm @error($labelField) is-invalid @enderror" maxlength="40" placeholder="{{ $placeholder }}">
+                    </div>
+                </div>
+            @endforeach
+
+            <div class="form-check form-switch mt-1">
+                <input type="hidden" name="show_equivalent_note" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="show_equivalent_note" id="show_equivalent_note" value="1" @checked($flag('show_equivalent_note', true))>
+                <label class="form-check-label" for="show_equivalent_note">Note "Equivalent Percentage=SGPA*{{ (float) config('result.cgpa_multiplier', 10) }}" under the course table</label>
+            </div>
+            <div class="form-text">
+                The result words (PASS, PROMOTED, FAIL) and the division ranges come from the Session Grade and Division settings of the session.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label fw-bold text-sm-end">Certificate</label>
+        <div class="col-sm-9">
+            <div class="form-check form-switch">
+                <input type="hidden" name="show_certificate" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="show_certificate" id="show_certificate" value="1" @checked($flag('show_certificate', true))>
+                <label class="form-check-label" for="show_certificate">Print the certificate text</label>
+            </div>
+            <div class="form-check form-switch mb-2">
+                <input type="hidden" name="certificate_pass_only" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="certificate_pass_only" id="certificate_pass_only" value="1" @checked($flag('certificate_pass_only', true))>
+                <label class="form-check-label" for="certificate_pass_only">Only for students who passed</label>
+            </div>
+
+            <textarea name="certificate_text" rows="3" class="form-control @error('certificate_text') is-invalid @enderror">{{ old('certificate_text', $template->certificate_text) }}</textarea>
+            @error('certificate_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="form-text">
+                Placeholders: <code>{name}</code> <code>{course}</code> <code>{roll}</code> <code>{enrollment}</code> <code>{session}</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- institute block (semester sheet) --}}
+<div class="only-semester">
+    <h5 class="mt-4 mb-3 border-bottom pb-2">Institute block</h5>
+
+    <div class="row mb-3">
+        <div class="col-sm-9 offset-sm-3">
+            <div class="form-check form-switch">
+                <input type="hidden" name="show_institute_block" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="show_institute_block" id="show_institute_block" value="1" @checked($flag('show_institute_block'))>
+                <label class="form-check-label fw-bold" for="show_institute_block">Print the institute block</label>
+            </div>
+            <div class="form-text">
+                Prints "Name of the Institute / School of Studies : School Of Commerce" (the department of the course)
+                and, below it, the address line.
+            </div>
+        </div>
+    </div>
+
+    <div id="instituteBox">
+        <div class="row mb-3">
+            <label class="col-sm-3 col-form-label fw-bold text-sm-end">Name line label</label>
+            <div class="col-sm-5">
+                <input type="text" name="institute_label" value="{{ old('institute_label', $template->institute_label) }}"
+                       class="form-control @error('institute_label') is-invalid @enderror">
+                @error('institute_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-sm-2">@include('result_template._align', ['name' => 'institute_align'])</div>
+        </div>
+
+        <div class="row mb-3">
+            <label class="col-sm-3 col-form-label fw-bold text-sm-end">Address line label</label>
+            <div class="col-sm-5">
+                <input type="text" name="address_label" value="{{ old('address_label', $template->address_label) }}"
+                       class="form-control @error('address_label') is-invalid @enderror">
+                @error('address_label') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
         </div>
     </div>
 </div>
@@ -214,7 +373,7 @@
             <input class="form-check-input" type="checkbox" role="switch" name="show_header" id="show_header" value="1" @checked($flag('show_header', true))>
             <label class="form-check-label fw-bold" for="show_header">Print the header</label>
         </div>
-        <div class="form-text">Switch it off to print on pre-printed letterhead paper.</div>
+        <div class="form-text">Switch it off to print on pre-printed letterhead paper (the Ph.D. sample has no header).</div>
     </div>
 </div>
 
@@ -239,12 +398,14 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-sm-9 offset-sm-3">
-            <div class="form-check form-switch">
-                <input type="hidden" name="show_department" value="0">
-                <input class="form-check-input" type="checkbox" role="switch" name="show_department" id="show_department" value="1" @checked($flag('show_department', true))>
-                <label class="form-check-label" for="show_department">Print the department name (for example SCHOOL OF COMMERCE)</label>
+    <div class="only-semester">
+        <div class="row mb-3">
+            <div class="col-sm-9 offset-sm-3">
+                <div class="form-check form-switch">
+                    <input type="hidden" name="show_department" value="0">
+                    <input class="form-check-input" type="checkbox" role="switch" name="show_department" id="show_department" value="1" @checked($flag('show_department', true))>
+                    <label class="form-check-label" for="show_department">Print the department name (for example SCHOOL OF COMMERCE)</label>
+                </div>
             </div>
         </div>
     </div>
@@ -426,13 +587,6 @@
         var max = {{ \App\Models\Result\ResultTemplate::MAX_SIGNATURES }};
         var list = document.getElementById('footerList');
 
-        // ---- where the template is used
-        var courses = @json($courseOptions);
-        var batches = @json($batchOptions);
-        var assigned = @json($assignRows);
-        var assignList = document.getElementById('assignList');
-        var counter = 0;
-
         function option(value, text, selected) {
             var o = document.createElement('option');
             o.value = value;
@@ -440,6 +594,25 @@
             if (selected) o.selected = true;
             return o;
         }
+
+        // ---- sheet type: the sections that do not apply are hidden (their values are kept)
+        function layout() {
+            var phd = document.getElementById('layout_phd').checked;
+
+            document.querySelectorAll('.only-phd').forEach(function (el) { el.style.display = phd ? '' : 'none'; });
+            document.querySelectorAll('.only-semester').forEach(function (el) { el.style.display = phd ? 'none' : ''; });
+        }
+
+        document.getElementById('layout_semester').addEventListener('change', layout);
+        document.getElementById('layout_phd').addEventListener('change', layout);
+        layout();
+
+        // ---- where the template is used
+        var courses = @json($courseOptions);
+        var batches = @json($batchOptions);
+        var assigned = @json($assignRows);
+        var assignList = document.getElementById('assignList');
+        var assignCounter = 0;
 
         // the sessions of the chosen course
         function fillBatches(select, courseId, selected) {
@@ -451,7 +624,7 @@
         }
 
         function addAssign(courseId, batchId) {
-            var index = counter++;
+            var index = assignCounter++;
 
             var row = document.createElement('div');
             row.className = 'row g-2 mb-2 align-items-center';
@@ -494,7 +667,85 @@
         assigned.forEach(function (row) { addAssign(row.courseid || '', row.batchid); });
         document.getElementById('addAssign').addEventListener('click', function () { addAssign('', ''); });
 
-        // a switched-off area is dimmed (not disabled), so nothing typed in it is lost
+        // ---- the Ph.D. information table
+        var infoFields = @json(\App\Models\Result\ResultTemplate::INFO_FIELDS);
+        var infoDefaults = @json(\App\Models\Result\ResultTemplate::DEFAULT_INFO_ROWS);
+        var infoRows = @json($infoRows);
+        var infoList = document.getElementById('infoList');
+        var infoCounter = 0;
+
+        function addInfo(row) {
+            var index = infoCounter++;
+            var current = row && row.field ? row.field : 'name';
+
+            var group = document.createElement('div');
+            group.className = 'row g-2 mb-1 align-items-center';
+
+            var colField = document.createElement('div');
+            colField.className = 'col-md-4';
+            var select = document.createElement('select');
+            select.name = 'info_rows[' + index + '][field]';
+            select.className = 'form-select form-select-sm';
+            Object.keys(infoFields).forEach(function (key) { select.appendChild(option(key, infoFields[key], key === current)); });
+            colField.appendChild(select);
+
+            var colLabel = document.createElement('div');
+            colLabel.className = 'col-md-6';
+            var label = document.createElement('input');
+            label.type = 'text';
+            label.name = 'info_rows[' + index + '][label]';
+            label.maxLength = 160;
+            label.className = 'form-control form-control-sm';
+            label.value = row && row.label ? row.label : infoFields[current];
+            colLabel.appendChild(label);
+
+            // choosing another field proposes its standard label, unless the label was typed by hand
+            select.addEventListener('change', function () {
+                if (label.value.trim() === '' || label.dataset.auto === '1' || label.value === infoFields[current]) {
+                    label.value = infoFields[select.value];
+                    label.dataset.auto = '1';
+                }
+                current = select.value;
+            });
+            label.addEventListener('input', function () { label.dataset.auto = '0'; });
+
+            var colTools = document.createElement('div');
+            colTools.className = 'col-md-2 text-nowrap';
+
+            function tool(icon, title, action) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-sm btn-outline-secondary me-1';
+                b.innerHTML = '<i class="bi ' + icon + '"></i>';
+                b.title = title;
+                b.addEventListener('click', action);
+                return b;
+            }
+
+            colTools.appendChild(tool('bi-arrow-up', 'Move up', function () {
+                var previous = group.previousElementSibling;
+                if (previous) infoList.insertBefore(group, previous);
+            }));
+            colTools.appendChild(tool('bi-arrow-down', 'Move down', function () {
+                var next = group.nextElementSibling;
+                if (next) infoList.insertBefore(next, group);
+            }));
+            colTools.appendChild(tool('bi-x-lg', 'Remove', function () { group.remove(); }));
+
+            group.appendChild(colField);
+            group.appendChild(colLabel);
+            group.appendChild(colTools);
+            infoList.appendChild(group);
+        }
+
+        infoRows.forEach(addInfo);
+        document.getElementById('addInfo').addEventListener('click', function () { addInfo(null); });
+        document.getElementById('resetInfo').addEventListener('click', function () {
+            infoList.innerHTML = '';
+            infoDefaults.forEach(addInfo);
+        });
+
+        // ---- a switched-off area is dimmed (not disabled), so nothing typed in it is lost
         function dim(switchId, boxId) {
             var box = document.getElementById(boxId);
             var toggle = document.getElementById(switchId);
@@ -518,7 +769,7 @@
         modeBox('marginAuto', 'marginCustom', 'marginBox');
         modeBox('spacingAuto', 'spacingCustom', 'spacingBox');
 
-        // signature labels
+        // ---- signature labels
         function addRow(value) {
             if (list.children.length >= max) return;
 

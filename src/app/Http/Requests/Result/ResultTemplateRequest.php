@@ -28,17 +28,30 @@ class ResultTemplateRequest extends FormRequest
                 'required', 'string', 'max:100',
                 Rule::unique('mark_result_template', 'name')->where('is_delete', false)->ignore($id, 'templateid'),
             ],
+            'layout' => ['required', Rule::in(array_keys(ResultTemplate::LAYOUTS))],
 
             // where the template is used: course + session (or every session)
             'assignments' => ['nullable', 'array', 'max:40'],
             'assignments.*.courseid' => ['required', Rule::exists('mark_course', 'courseid')->where('is_delete', false)],
             'assignments.*.batchid' => ['nullable', Rule::exists('mark_batch', 'batchid')->where('is_delete', false)],
 
-            // both can be empty: the sheet then starts with the course name
+            // both can be empty: the sheet then starts with its own first line
             'title' => ['nullable', 'string', 'max:60'],
             'programme_label' => ['nullable', 'string', 'max:80'],
             'exam_label' => ['required', 'string', 'max:30'],
             'date_format' => ['required', Rule::in(array_keys(ResultTemplate::DATE_FORMATS))],
+
+            // Ph.D. sheet
+            'info_rows' => ['nullable', 'array', 'max:16'],
+            'info_rows.*.field' => ['required', Rule::in(array_keys(ResultTemplate::INFO_FIELDS))],
+            'info_rows.*.label' => ['nullable', 'string', 'max:160'],
+            'default_subject' => ['nullable', 'string', 'max:100'],
+            'session_format' => ['required', Rule::in(array_keys(ResultTemplate::SESSION_FORMATS))],
+            'attempt_label' => ['required', 'string', 'max:30'],
+            'result_row_label' => ['required', 'string', 'max:30'],
+            'equivalent_label' => ['nullable', 'string', 'max:40'],
+            'division_label' => ['nullable', 'string', 'max:40'],
+            'certificate_text' => ['nullable', 'string', 'max:1000'],
 
             'university_name' => ['nullable', 'string', 'max:150'],
             'header_lines_top' => ['nullable', 'string', 'max:500'],
@@ -82,6 +95,19 @@ class ResultTemplateRequest extends FormRequest
             foreach (['header_lines_top' => 'above', 'header_lines_bottom' => 'below'] as $field => $where) {
                 if (count(ResultTemplate::lines($this->input($field))) > 6) {
                     $validator->errors()->add($field, "Use at most 6 lines {$where} the department.");
+                }
+            }
+
+            // the Ph.D. information table needs rows, and each field can be used once
+            if ($this->input('layout') === 'phd') {
+                $fields = collect((array) $this->input('info_rows', []))
+                    ->pluck('field')
+                    ->filter();
+
+                if ($fields->isEmpty()) {
+                    $validator->errors()->add('info_rows', 'Add at least one row to the information table.');
+                } elseif ($fields->duplicates()->isNotEmpty()) {
+                    $validator->errors()->add('info_rows', 'Each field can be used once in the information table.');
                 }
             }
 

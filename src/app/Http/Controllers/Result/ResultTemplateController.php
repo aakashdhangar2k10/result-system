@@ -20,9 +20,7 @@ use Illuminate\Support\Str;
 
 class ResultTemplateController extends Controller implements HasMiddleware
 {
-    public function __construct(private GradeSheetService $sheets)
-    {
-    }
+    public function __construct(private GradeSheetService $sheets) {}
 
     public static function middleware(): array
     {
@@ -39,7 +37,7 @@ class ResultTemplateController extends Controller implements HasMiddleware
         $templates = ResultTemplate::query()
             ->withCount('usages')
             ->with(['assignments.course', 'assignments.batch'])
-            ->when($request->q, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when($request->q, fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
@@ -79,7 +77,7 @@ class ResultTemplateController extends Controller implements HasMiddleware
         return view('result_template.edit', [
             'template' => $resultTemplate,
             'assignmentRows' => $resultTemplate->assignments
-                ->map(fn ($a) => ['courseid' => $a->courseid, 'batchid' => $a->batchid])->all(),
+                ->map(fn($a) => ['courseid' => $a->courseid, 'batchid' => $a->batchid])->all(),
             'used' => $resultTemplate->usages()->count(),
             'lastUsed' => $resultTemplate->usages()->latest('usageid')->value('created_at'),
         ] + $this->formData());
@@ -154,7 +152,15 @@ class ResultTemplateController extends Controller implements HasMiddleware
     // the template printed for the first student of a calculated exam (a preview is not a real printout)
     public function preview(ResultTemplate $resultTemplate)
     {
-        foreach (SemesterResult::latest('calculated_at')->limit(10)->get() as $header) {
+        $courseIds = $resultTemplate->assignments()->pluck('courseid');
+
+        $headers = SemesterResult::query()
+            ->when($courseIds->isNotEmpty(), fn($q) => $q->whereIn('courseid', $courseIds))
+            ->latest('calculated_at')
+            ->limit(10)
+            ->get();
+
+        foreach ($headers as $header) {
             $exam = SemesterExam::find($header->semesterexamid);
 
             if (! $exam) {
@@ -199,9 +205,26 @@ class ResultTemplateController extends Controller implements HasMiddleware
         }
 
         $data['footer_items'] = array_values(array_filter(
-            array_map(fn ($label) => trim((string) $label), (array) $request->input('footer_items', [])),
-            fn ($label) => $label !== ''
+            array_map(fn($label) => trim((string) $label), (array) $request->input('footer_items', [])),
+            fn($label) => $label !== ''
         ));
+
+        // the Ph.D. information table: known fields only, every row with a label
+        $data['info_rows'] = collect((array) $request->input('info_rows', []))
+            ->map(fn($row) => [
+                'field' => (string) ($row['field'] ?? ''),
+                'label' => trim((string) ($row['label'] ?? '')),
+            ])
+            ->filter(fn($row) => isset(ResultTemplate::INFO_FIELDS[$row['field']]))
+            ->map(fn($row) => [
+                'field' => $row['field'],
+                'label' => $row['label'] !== '' ? $row['label'] : ResultTemplate::INFO_FIELDS[$row['field']],
+            ])
+            ->values()
+            ->all();
+
+        $data['certificate_text'] = trim((string) ($data['certificate_text'] ?? '')) ?: null;
+        $data['default_subject'] = trim((string) ($data['default_subject'] ?? '')) ?: null;
 
         // the default template stays the default until another one takes over
         if ($current?->is_default) {
@@ -243,12 +266,12 @@ class ResultTemplateController extends Controller implements HasMiddleware
         $template->assignments()->delete();
 
         $rows = collect((array) $request->input('assignments', []))
-            ->map(fn ($row) => [
+            ->map(fn($row) => [
                 'courseid' => (int) ($row['courseid'] ?? 0),
                 'batchid' => ($row['batchid'] ?? '') !== '' ? (int) $row['batchid'] : null,
             ])
-            ->filter(fn ($row) => $row['courseid'] > 0)
-            ->unique(fn ($row) => $row['courseid'] . '-' . ($row['batchid'] ?? 0))
+            ->filter(fn($row) => $row['courseid'] > 0)
+            ->unique(fn($row) => $row['courseid'] . '-' . ($row['batchid'] ?? 0))
             ->values();
 
         foreach ($rows as $row) {

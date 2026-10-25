@@ -50,6 +50,7 @@
                         <td>
                             <strong>{{ $template->name }}</strong>
                             @if ($template->is_default) <span class="badge text-bg-primary">Default</span> @endif
+                            <span class="badge text-bg-{{ $template->layout === 'phd' ? 'info' : 'light border text-dark' }}">{{ \App\Models\Result\ResultTemplate::LAYOUTS[$template->layout] ?? $template->layout }}</span>
                             <div class="small text-muted">{{ $template->title ?: 'No title' }}</div>
                         </td>
                         <td class="small">{{ $template->assignment_text }}</td>
