@@ -3,13 +3,13 @@
 @if ($menuUser)
     <li class="nav-item dropdown user-menu">
         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="{{ $menuUser->avatar_url }}" class="user-image rounded-circle shadow" alt="{{ $menuUser->name }}">
+            <img src="{{ $menuUser->avatar_url }}" class="user-image rounded-circle shadow" style="object-fit:cover" alt="{{ $menuUser->name }}">
             <span class="d-none d-md-inline">{{ $menuUser->name }}</span>
         </a>
 
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
             <li class="user-header text-bg-primary">
-                <img src="{{ $menuUser->avatar_url }}" class="rounded-circle shadow" alt="">
+                <img src="{{ $menuUser->avatar_url }}" class="rounded-circle shadow" style="object-fit:cover" alt="">
                 <p>
                     {{ $menuUser->name }}
                     <small>{{ $menuUser->email }}</small>

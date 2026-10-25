@@ -56,6 +56,8 @@ use App\Http\Controllers\ProfileController;
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'password'])->name('profile.password');
+    Route::put('profile/photo', [ProfileController::class, 'photo'])->name('profile.photo');
+    Route::delete('profile/photo', [ProfileController::class, 'removePhoto'])->name('profile.photo.remove');
     
     });
 

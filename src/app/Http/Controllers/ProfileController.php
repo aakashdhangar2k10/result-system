@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -57,5 +58,40 @@ class ProfileController extends Controller
         $request->user()->update(['password' => $request->password]);
 
         return back()->with('success', 'Password changed.');
+    }
+
+    // upload or replace the photo
+    public function photo(Request $request)
+    {
+        $request->validateWithBag('photo', [
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'photo.required' => 'Choose a photo first.',
+            'photo.image' => 'The file must be an image.',
+            'photo.mimes' => 'The photo must be a .jpg, .jpeg, .png or .webp file.',
+            'photo.max' => 'The photo must not be larger than 2 MB.',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->photo) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        $user->update(['photo' => $request->file('photo')->store('profile-photos', 'public')]);
+
+        return back()->with('success', 'Photo updated.');
+    }
+
+    public function removePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->photo) {
+            Storage::disk('public')->delete($user->photo);
+            $user->update(['photo' => null]);
+        }
+
+        return back()->with('success', 'Photo removed. Your initials are shown instead.');
     }
 }

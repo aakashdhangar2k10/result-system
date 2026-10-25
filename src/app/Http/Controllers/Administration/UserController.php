@@ -15,12 +15,11 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller implements HasMiddleware
 {
-    public function __construct(private AccessService $access)
-    {
-    }
+    public function __construct(private AccessService $access) {}
 
     public static function middleware(): array
     {
@@ -38,11 +37,11 @@ class UserController extends Controller implements HasMiddleware
 
         $query = User::query()
             ->with(['roles', 'groups', 'departments'])
-            ->when($request->roleid, fn ($q, $id) => $q->whereHas('roles', fn ($r) => $r->where('roles.id', $id)))
-            ->when($request->groupid, fn ($q, $id) => $q->whereHas('groups', fn ($g) => $g->where('mark_group.groupid', $id)))
-            ->when($request->deptid, fn ($q, $id) => $q->whereHas('departments', fn ($d) => $d->where('mark_department.deptid', $id)))
-            ->when($request->status === 'active', fn ($q) => $q->where('users.active', true))
-            ->when($request->status === 'inactive', fn ($q) => $q->where('users.active', false))
+            ->when($request->roleid, fn($q, $id) => $q->whereHas('roles', fn($r) => $r->where('roles.id', $id)))
+            ->when($request->groupid, fn($q, $id) => $q->whereHas('groups', fn($g) => $g->where('mark_group.groupid', $id)))
+            ->when($request->deptid, fn($q, $id) => $q->whereHas('departments', fn($d) => $d->where('mark_department.deptid', $id)))
+            ->when($request->status === 'active', fn($q) => $q->where('users.active', true))
+            ->when($request->status === 'inactive', fn($q) => $q->where('users.active', false))
             ->when($request->q, function ($q, $search) {
                 $q->where(function ($w) use ($search) {
                     $w->where('users.name', 'like', "%{$search}%")->orWhere('users.email', 'like', "%{$search}%");
@@ -103,6 +102,9 @@ class UserController extends Controller implements HasMiddleware
                 'active' => $request->boolean('active'),
                 'all_departments' => $data['department_access'] === 'all',
             ]);
+            if ($request->hasFile('photo')) {
+                $user->update(['photo' => $request->file('photo')->store('profile-photos', 'public')]);
+            }
 
             $this->syncAccess($user, $data, $actor);
         });
@@ -129,7 +131,7 @@ class UserController extends Controller implements HasMiddleware
         // the roles the user will have after this save
         $adminRoleId = (int) Role::where('name', 'admin')->where('guard_name', 'api')->value('id');
         $roleIds = $this->access->keep(
-            $user->roles->pluck('id')->map(fn ($id) => (int) $id)->all(),
+            $user->roles->pluck('id')->map(fn($id) => (int) $id)->all(),
             array_map('intval', $data['roles'] ?? []),
             $this->access->grantableRoleIds($actor)
         );
@@ -160,6 +162,19 @@ class UserController extends Controller implements HasMiddleware
 
         if (! empty($data['password'])) {
             $payload['password'] = $data['password'];
+        }
+
+        if ($request->boolean('remove_photo') && $user->photo) {
+            Storage::disk('public')->delete($user->photo);
+            $payload['photo'] = null;
+        }
+
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+
+            $payload['photo'] = $request->file('photo')->store('profile-photos', 'public');
         }
 
         DB::transaction(function () use ($user, $payload, $data, $actor) {
@@ -207,14 +222,14 @@ class UserController extends Controller implements HasMiddleware
         $user->loadMissing('roles');
 
         $roleIds = $this->access->keep(
-            $user->roles->pluck('id')->map(fn ($id) => (int) $id)->all(),
+            $user->roles->pluck('id')->map(fn($id) => (int) $id)->all(),
             array_map('intval', $data['roles'] ?? []),
             $this->access->grantableRoleIds($actor)
         );
         $user->syncRoles(Role::whereIn('id', $roleIds)->where('guard_name', 'api')->get()->all());
 
         $groupIds = $this->access->keep(
-            DB::table('mark_group_user')->where('user_id', $user->id)->pluck('groupid')->map(fn ($id) => (int) $id)->all(),
+            DB::table('mark_group_user')->where('user_id', $user->id)->pluck('groupid')->map(fn($id) => (int) $id)->all(),
             array_map('intval', $data['groups'] ?? []),
             $this->access->grantableGroupIds($actor)
         );
@@ -224,9 +239,9 @@ class UserController extends Controller implements HasMiddleware
             $user->departments()->sync([]);
         } else {
             $departmentIds = $this->access->keep(
-                DB::table('mark_user_department')->where('user_id', $user->id)->pluck('deptid')->map(fn ($id) => (int) $id)->all(),
+                DB::table('mark_user_department')->where('user_id', $user->id)->pluck('deptid')->map(fn($id) => (int) $id)->all(),
                 array_map('intval', $data['departments'] ?? []),
-                Department::pluck('deptid')->map(fn ($id) => (int) $id)->all()   // the departments the actor can see
+                Department::pluck('deptid')->map(fn($id) => (int) $id)->all()   // the departments the actor can see
             );
             $user->departments()->sync($departmentIds);
         }

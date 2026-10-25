@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -19,7 +20,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected string $guard_name = 'api';
 
-    protected $fillable = ['name', 'email', 'password', 'active', 'is_delete', 'all_departments'];
+    protected $fillable = ['name', 'email', 'photo', 'password', 'active', 'is_delete', 'all_departments'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -91,9 +92,14 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // initials on a coloured circle: no photo file is needed
+    // the uploaded photo, or the initials on a coloured circle
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(function () {
+            if ($this->photo && Storage::disk('public')->exists($this->photo)) {
+                return asset('storage/' . $this->photo);
+            }
+
             $initials = collect(preg_split('/\s+/', trim((string) $this->name)))
                 ->filter()
                 ->take(2)

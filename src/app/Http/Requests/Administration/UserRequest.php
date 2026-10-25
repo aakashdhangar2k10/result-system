@@ -30,6 +30,7 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')->ignore($id)],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             // a new user needs a password; on edit an empty field keeps the old one
             'password' => [$id ? 'nullable' : 'required', 'confirmed', Password::min(8)->letters()->numbers()],
             'active' => ['nullable', 'boolean'],
@@ -40,6 +41,7 @@ class UserRequest extends FormRequest
             'department_access' => ['required', Rule::in(['all', 'selected'])],
             'departments' => ['nullable', 'array'],
             'departments.*' => ['integer', Rule::exists('mark_department', 'deptid')->where('is_delete', false)],
+            'remove_photo' => ['nullable', 'boolean'],
         ];
     }
 
@@ -57,6 +59,8 @@ class UserRequest extends FormRequest
         return [
             'email.unique' => 'This email is already used by another user.',
             'password.required' => 'Enter a password for the new user.',
+            'photo.max' => 'The photo must not be larger than 2 MB.',
+            'photo.mimes' => 'The photo must be a .jpg, .jpeg, .png or .webp file.',
         ];
     }
 }

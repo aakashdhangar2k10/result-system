@@ -10,7 +10,7 @@
     @include('partials.flash-error')
 
     <div class="card card-info card-outline">
-        <form action="{{ route('admin-users.store') }}" method="POST">
+        <form action="{{ route('admin-users.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="card-body">
                 @include('administration.users._form')
